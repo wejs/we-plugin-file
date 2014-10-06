@@ -1,7 +1,7 @@
 {
   "name": "we-plugin-file",
   "description": "We.js file plugin",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "dependencies": {
     "gm": "^1.16.0",
     "include-all": "^0.1.6",
