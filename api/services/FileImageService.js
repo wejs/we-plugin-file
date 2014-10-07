@@ -7,7 +7,7 @@ exports.getImageStyles = function(){
 
 exports.getImagePath = function(imageName, imageStyle){
   if(!imageStyle) imageStyle = 'original';
-  return sails.config.subAppPath + '/'+ sails.config.imageUploadPath + '/' + imageStyle + '/' + imageName;
+  return sails.config.appPath + '/'+ sails.config.imageUploadPath + '/' + imageStyle + '/' + imageName;
 };
 
 exports.getFileOrResize = function getFileOrResize(fileName,imageStyle ,callback){
