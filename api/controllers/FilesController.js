@@ -50,9 +50,12 @@ module.exports = {
                 console.log(error);
                // res.send(500, {error: res.i18n("DB Error") });
               } else {
+
+                var host = sails.config.hostname;
+
                 //console.log('salved File:',salvedFile);
-                salvedFile.thumbnailUrl = 'http://localhost:1333/images/avatars/user-avatar.png';
-                salvedFile.url = 'http://localhost:1333/images/avatars/user-avatar.png';
+                salvedFile.thumbnailUrl = host + '/images/avatars/user-avatar.png';
+                salvedFile.url = host + '/images/avatars/user-avatar.png';
                 salvedFile.deleteUrl = '/files/' + salvedFile.id;
                 salvedFile.deleteType = 'DELETE';
 

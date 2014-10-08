@@ -103,7 +103,7 @@ module.exports = {
 
       file.mime = mime.lookup(newFilePath);
 
-      console.log('arquivo movido para:',newFilePath);
+      sails.log.verbose('arquivo movido para:',newFilePath);
       // get image size
       gm(newFilePath)
       .size(function (err, size) {
@@ -117,13 +117,15 @@ module.exports = {
 
     });
   },
-  getStyleUrlFromImage: function(image){
+  getStyleUrlFromImage: function(image) {
+    var host = sails.config.hostname;
+
     return {
-      original: '/api/v1/images/original/' + image.name,
-      thumbnail: '/api/v1/images/thumbnail/' + image.name,
-      mini: '/api/v1/images/mini/' + image.name,
-      medium: '/api/v1/images/medium/' + image.name,
-      large: '/api/v1/images/large/' + image.name
+      original: host + '/api/v1/images/original/' + image.name,
+      thumbnail: host + '/api/v1/images/thumbnail/' + image.name,
+      mini: host + '/api/v1/images/mini/' + image.name,
+      medium: host + '/api/v1/images/medium/' + image.name,
+      large: host + '/api/v1/images/large/' + image.name
     };
   },
 
