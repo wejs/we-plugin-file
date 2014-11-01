@@ -9,13 +9,11 @@ var mv = require('mv');
 var uuid = require('node-uuid');
 
 module.exports = {
-
-//  adapter: 'sails-local-fs'
   schema: true,
   attributes: {
 
     name: {
-        type: 'STRING'
+      type: 'STRING'
     },
 
     size: {

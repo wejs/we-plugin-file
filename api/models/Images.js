@@ -41,7 +41,8 @@ module.exports = {
     },
 
     creator: {
-      type: 'string'
+      model: 'user',
+      required: true
     },
 
     width: {
@@ -50,10 +51,6 @@ module.exports = {
 
     height: {
       type: 'string'
-    },
-
-    inPost: {
-      model: 'post'
     },
 
     // Override toJSON instance method
