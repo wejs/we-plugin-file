@@ -1,5 +1,6 @@
 var fs = require('fs');
 var gm = require('gm');
+var async = require('async');
 
 exports.getImageStyles = function(){
   return sails.config.upload.image.avaibleStyles;
@@ -53,7 +54,7 @@ exports.deleteImageStylesWithImageName = function(imageName, callback){
   async.each(imageStyles,function(style, next){
     var path = FileImageService.getImagePath(imageName, style);
     fs.exists(path, function(exists) {
-      console.log(path,exists);
+      sails.log.verbose(path,exists);
       if (exists) {
         fs.unlink(path, function (err) {
           if (err) throw err;

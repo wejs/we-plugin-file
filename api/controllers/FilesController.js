@@ -12,7 +12,7 @@ module.exports = {
     res.send('hello world!');
   }
   */
-  index : function (req, res, next){
+  find : function (req, res, next){
     res.send(
       {"files":[]}
     );

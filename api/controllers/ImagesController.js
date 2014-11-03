@@ -8,7 +8,11 @@ var actionUtil = require('we-helpers').actionUtil;
 
 module.exports = {
 
-  list : function (req, res){
+  find: function (req, res) {
+
+    var sails = req._sails;
+    var Images = sails.models.images;
+
     Images.find()
     .where( actionUtil.parseCriteria(req) )
     .limit( actionUtil.parseLimit(req) )
@@ -28,6 +32,9 @@ module.exports = {
     if(!fileName){
       return res.send(404);
     }
+
+    var sails = req._sails;
+    var Images = sails.models.images;
 
     var avaibleImageStyles = sails.config.upload.image.avaibleStyles;
 
@@ -101,19 +108,26 @@ module.exports = {
   /**
    * Upload file to upload dir and save metadata on database
    */
-  createRecord : function createMultiplesRecords(req, res){
-    if(!req.user || !req.user.id){
+  createRecord : function createMultiplesRecords(req, res) {
+    if (!req.isAuthenticated()) {
       return res.forbidden('Logged in user not found');
     }
+
+    var sails = req._sails;
+    var Images = sails.models.images;
 
     var creatorId = req.user.id;
 
     req.file('images').upload({
       maxBytes: 20000000
     },function (err, files) {
-      if (err){ return res.serverError(err); }
+      if (err) {
+        sails.log.error('Error on receive uploaded images', err);
+        return res.serverError(err);
+      }
       Images.uploadMultiple(files, creatorId, function(err, uploadedFiles){
-        if(err){
+        if (err) {
+          sails.log.error('Error on upload multiple images', err);
           res.send(
             {
               'files':[],
@@ -122,9 +136,12 @@ module.exports = {
           );
         } else {
           Images.create(uploadedFiles).exec(function(error, salvedFiles) {
-            if (err) { return res.serverError(err); }
+            if (err) {
+              sails.log.error('Error on create image', err);
+              return res.serverError(err);
+            }
 
-            sails.log.warn('> salvedFiles',salvedFiles);
+            sails.log.verbose('> salvedFiles',salvedFiles);
             res.send({
               images: salvedFiles
             });
@@ -138,7 +155,10 @@ module.exports = {
   /**
    * Crop one file by file id
    */
-  cropImage : function (req, res){
+  cropImage : function (req, res) {
+
+    var sails = req._sails;
+    var Images = sails.models.images;
 
     var fileId = req.param('id');
     var cords = {};
@@ -153,7 +173,8 @@ module.exports = {
       return res.send(400,'Width, height, x and y params is required');
     }
 
-    if(!req.user || !req.user.id){
+    if(!req.user || !req.user.id) {
+      sails.log.warn('errr no user')
       return res.send(404);
     }
 
@@ -174,7 +195,7 @@ module.exports = {
       var originalFile = FileImageService.getImagePath(image.name, 'original');
 
 
-      sails.log.debug('Filename:', image.name);
+      sails.log.verbose('Filename:', image.name);
 
       FileImageService.resizeImageAndReturnSize(originalFile, cords, function(err, size){
 
@@ -183,11 +204,9 @@ module.exports = {
         // save the new width and height on db
         image.save();
 
-        sails.log.debug('resize image to:', cords);
+        sails.log.verbose('resize image to:', cords);
 
-        sails.log.debug('result:',size.width, size.width);
-
-
+        sails.log.verbose('result:',size.width, size.width);
 
         // delete old auto generated image styles
         FileImageService.deleteImageStylesWithImageName(image.name, function(err){

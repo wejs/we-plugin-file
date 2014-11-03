@@ -147,9 +147,8 @@ module.exports = {
           next();
         }
       });
-    },function(err){
-      sails.log.error('Error on upload image:',err,files);
-      if(err){
+    },function (err) {
+      if (err) {
         callback(err, null);
       }else{
         callback(null, uploadedFiles);
