@@ -9,7 +9,6 @@ var actionUtil = require('we-helpers').actionUtil;
 module.exports = {
 
   find: function (req, res) {
-
     var sails = req._sails;
     var Images = sails.models.images;
 
@@ -27,13 +26,14 @@ module.exports = {
     });
   },
 
-  findOne : function (req, res){
+  findOne : function (req, res, next) {
+    var sails = req._sails;
+
     var fileName = req.param('name');
     if(!fileName){
-      return res.send(404);
+      return next();
     }
 
-    var sails = req._sails;
     var Images = sails.models.images;
 
     var avaibleImageStyles = sails.config.upload.image.avaibleStyles;
@@ -45,7 +45,7 @@ module.exports = {
       imageStyle !== 'original' &&
       avaibleImageStyles.indexOf(imageStyle) === -1)
     {
-      return res.send(400,'Image style invalid');
+      return res.badRequest('Image style invalid');
     }
 
     Images.findOne()
@@ -53,12 +53,26 @@ module.exports = {
     .exec(function(err, image) {
       if (err){ return res.negotiate(err); }
 
-      if(!image){
-        sails.log.debug('Image:findOne:Image not found:',fileName);
-        return res.send(404);
+      if (image) {
+        return sendFile(image);
       }
 
-      FileImageService.getFileOrResize(fileName, imageStyle ,function(err, contents){
+      Images.findOneById(fileName, function(err, image) {
+        if (err){ return res.negotiate(err); }
+        if (!image) {
+          sails.log.debug('Image:findOne:Image not found:',fileName);
+          return res.notFound('Image not found');
+        }
+        return sendFile(image);
+      });
+    });
+
+    function sendFile(image) {
+      if (req.wantsJSON) {
+        return res.ok(image);
+      }
+
+      FileImageService.getFileOrResize(image.name, imageStyle ,function(err, contents){
         if(err){
           sails.log.error('Image:findOne:Error on get image:',err);
           return res.send(500);
@@ -76,8 +90,7 @@ module.exports = {
 
         res.send(contents);
       });
-
-    });
+    }
   },
 
   /**
@@ -108,7 +121,7 @@ module.exports = {
   /**
    * Upload file to upload dir and save metadata on database
    */
-  createRecord : function createMultiplesRecords(req, res) {
+  create: function createMultiplesRecords(req, res) {
     if (!req.isAuthenticated()) {
       return res.forbidden('Logged in user not found');
     }
