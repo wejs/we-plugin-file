@@ -30,7 +30,7 @@ module.exports = {
     var sails = req._sails;
 
     var fileName = req.param('name');
-    if(!fileName){
+    if(!fileName) {
       return next();
     }
 
@@ -53,23 +53,8 @@ module.exports = {
     .exec(function(err, image) {
       if (err){ return res.negotiate(err); }
 
-      if (image) {
-        return sendFile(image);
-      }
-
-      Images.findOneById(fileName, function(err, image) {
-        if (err){ return res.negotiate(err); }
-        if (!image) {
-          sails.log.debug('Image:findOne:Image not found:',fileName);
-          return res.notFound('Image not found');
-        }
-        return sendFile(image);
-      });
-    });
-
-    function sendFile(image) {
-      if (req.wantsJSON) {
-        return res.ok(image);
+      if (!image) {
+        return res.notFound(image);
       }
 
       FileImageService.getFileOrResize(image.name, imageStyle ,function(err, contents){
@@ -88,9 +73,9 @@ module.exports = {
           res.contentType('image/png');
         }
 
-        res.send(contents);
+        return res.send(contents);
       });
-    }
+    });
   },
 
   /**
