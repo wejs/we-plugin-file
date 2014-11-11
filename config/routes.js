@@ -60,7 +60,7 @@ module.exports.routes = {
 
   'post /api/v1/images': {
     controller    : 'images',
-    action        : 'createRecord'
+    action        : 'create'
   },
 
   // -- FILES
