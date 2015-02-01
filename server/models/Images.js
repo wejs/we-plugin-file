@@ -11,9 +11,11 @@ var uuid = require('node-uuid');
 var gm = require('gm');
 var path = require('path');
 var mime = require('mime');
+var async = require('async');
 
 module.exports = {
   schema: true,
+
   attributes: {
 
     name: {
@@ -92,11 +94,12 @@ module.exports = {
     file.newName =  uuid.v1() + '.' + file.extension;
 
     var newFilePath = path.resolve(sails.config.imageUploadPath + '/' + 'original' + '/' + file.newName);
-    //var newFilePath = sails.config.appPath + '/' + sails.config
-    //.imageUploadPath + '/' + 'original' + '/' + file.newName;
 
-    mv(file.path, newFilePath,{mkdirp: true}, function(err){
-      if(err) return callback(err, null);
+    mv(file.path, newFilePath,{mkdirp: true}, function afterImageUpload(err) {
+      if (err) {
+        sails.log.error('Images.upload: Error on move file', err);
+        return callback(err, null);
+      }
 
       file.mime = mime.lookup(newFilePath);
 
@@ -104,7 +107,10 @@ module.exports = {
       // get image size
       gm(newFilePath)
       .size(function (err, size) {
-        if (err) return callback(err);
+        if (err) {
+          sails.log.error('Images.upload: Error on get image file size', err, newFilePath);
+          return callback(err);
+        }
 
         file.width = size.width;
         file.height = size.height;
@@ -134,7 +140,7 @@ module.exports = {
       file.path =  file.fd;
 
       Images.upload(file, function(err){
-        if(err){
+        if (err) {
           next(err);
         } else {
           fileUp = file;

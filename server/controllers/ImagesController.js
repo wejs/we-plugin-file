@@ -21,7 +21,7 @@ module.exports = {
     .exec(function(err, images) {
       if (err){ return res.serverError(err); }
       res.send({
-        image: images
+        images: images
       });
     });
   },
@@ -51,7 +51,7 @@ module.exports = {
     Images.findOne()
     .where({name: fileName})
     .exec(function(err, image) {
-      if (err){ return res.negotiate(err); }
+      if (err) { return res.negotiate(err); }
 
       if (!image) {
         return res.notFound(image);
@@ -97,7 +97,7 @@ module.exports = {
         return res.send(404);
       }
       res.send({
-        image: image
+        images: image
       });
     });
   },
@@ -123,7 +123,7 @@ module.exports = {
         sails.log.error('Error on receive uploaded images', err);
         return res.serverError(err);
       }
-      Images.uploadMultiple(files, creatorId, function(err, uploadedFiles){
+      Images.uploadMultiple(files, creatorId, function(err, uploadedFiles) {
         if (err) {
           sails.log.error('Error on upload multiple images', err);
           res.send(

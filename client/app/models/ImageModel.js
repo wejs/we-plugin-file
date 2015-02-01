@@ -1,48 +1,15 @@
-(function($, Ember, App){
+$(function() {
 
-  var attr = DS.attr;
-  var get = Ember.get;
-
-  App.Image = DS.Model.extend({
-    name: attr('string'),
-    size: attr('number'),
-    width: attr('string'),
-    height: attr('string'),
-    originalFilename: attr('string'),
-    mime: attr('string'),
-
-    // flags
-    active: attr('boolean', {
-      defaultValue: true
-    }),
-
-    urls: attr(),
-
-    user_id: DS.attr('string'),
-
-    creator: DS.belongsTo('user', {
-      async: true,
-      inverse: 'images',
-    }),
-
-    avatarOf: DS.belongsTo('user', {
-      async: true,
-      inverse: 'avatar'
-    }),
-
-    // post association
-    inPost: attr('string'),
-
-    createdAt: attr('date'),
-    updatedAt: attr('date')
+  App.Images.reopen({
+    urls: DS.attr()
   });
 
-
-  App.ImageAdapter = App.ApplicationRESTAdapter.extend({
+  App.ImagesAdapter = App.ApplicationRESTAdapter.extend({
     namespace: 'api/v1',
     pathForType: function(type) {
        return 'images';
     },
+
     /**
       Builds a URL for a given type and optional ID.
 
@@ -57,10 +24,10 @@
       @param {String} type
       @param {String} id
       @return {String} url
-    */
+     */
     buildURL: function(type, id) {
       var url = [],
-          host = get(this, 'host'),
+          host = Ember.get(this, 'host'),
           prefix = this.urlPrefix();
 
       if (type) { url.push('images'); }
@@ -78,5 +45,7 @@
     }
   });
 
+});
 
-})(jQuery, Ember, App);
+Ember.Inflector.inflector.irregular('images', 'images');
+Ember.Inflector.inflector.singular(/images/, 'images');
