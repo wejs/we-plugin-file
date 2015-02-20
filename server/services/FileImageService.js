@@ -1,6 +1,7 @@
 var fs = require('fs');
 var gm = require('gm');
 var async = require('async');
+var path = require('path');
 
 exports.getImageStyles = function(){
   return sails.config.upload.image.avaibleStyles;
@@ -8,7 +9,7 @@ exports.getImageStyles = function(){
 
 exports.getImagePath = function(imageName, imageStyle){
   if(!imageStyle) imageStyle = 'original';
-  return sails.config.appPath + '/'+ sails.config.imageUploadPath + '/' + imageStyle + '/' + imageName;
+  return path.resolve(sails.config.imageUploadPath + '/' + imageStyle + '/' + imageName);
 };
 
 exports.getFileOrResize = function getFileOrResize(fileName,imageStyle ,callback){
