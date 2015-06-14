@@ -1,26 +1,21 @@
 {
   "name": "we-plugin-file",
   "description": "We.js file plugin",
-  "version": "0.2.2",
+  "version": "0.3.0",
   "dependencies": {
     "async": "^0.9.0",
     "gm": "^1.16.0",
-    "include-all": "^0.1.6",
     "lodash": "^2.4.1",
     "mime": "^1.2.11",
+    "mkdirp": "^0.5.1",
     "mv": "^2.0.3",
     "node-uuid": "^1.4.1",
-    "string": "^2.1.0",
-    "we-helpers": ">=0.0.7",
-    "we-theme-engine": "0.0.10"
+    "string": "^2.1.0"
   },
   "main": "lib/index.js",
   "scripts": {
     "lint": "./node_modules/.bin/jshint .",
-    "checkStyle": "./node_modules/.bin/jscs .",
-    "pretest": "npm run-script lint && npm run-script checkStyle",
-    "test": "./node_modules/.bin/istanbul cover ./node_modules/.bin/_mocha test",
-    "posttest": "./node_modules/.bin/istanbul check-coverage && rm -rf coverage",
+    "test": "NODE_ENV=test LOG_LV=info ./node_modules/.bin/mocha test/bootstrap.js test/**/*.test.js -b ",
     "prepublish": "npm prune"
   },
   "publishConfig": {
@@ -29,13 +24,29 @@
   "author": "Alberto Souza <alberto.souza.dev@gmail.com>",
   "license": "ISC",
   "devDependencies": {
-    "mocha": "^1.18.2",
-    "istanbul": "^0.2.7",
-    "jshint": "^2.5.0",
-    "jscs": "^1.4.5"
+    "fs-extra": "^0.18.2",
+    "istanbul": "^0.3.14",
+    "jscs": "^1.4.5",
+    "jshint": "^2.8.0",
+    "mocha": "^2.2.5",
+    "rimraf": "^2.3.3",
+    "sinon": "^1.14.1",
+    "supertest": "^1.0.1",
+    "we-core": "^0.3.23",
+    "we-test-tools": "^0.3.3",
+    "we-theme-admin-default": "^0.3.1",
+    "we-theme-site-wejs": "^0.3.10"
   },
   "repository": {
     "type": "git",
     "url": "git@github.com:wejs/we-plugin-file.git"
-  }
+  },
+  "files": [
+    "LICENSE",
+    "README.md",
+    "plugin.js",
+    "server/",
+    "client/",
+    "lib/"
+  ]
 }
