@@ -4,3 +4,5 @@ test
 .jshintrc
 .travis.yml
 .gitignore
+*.sql
+*.log

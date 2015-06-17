@@ -19,6 +19,24 @@ module.exports = function loadPlugin(projectPath, Plugin) {
 
   // set plugin configs
   plugin.setConfigs({
+    permissions: {
+      'find_image': {
+        'title': 'Find image',
+        'description': 'Find and list images'
+      },
+      'crop_image': {
+        'title': 'Crop image',
+        'description': 'Crop image and update size data'
+      },
+      'upload_image': {
+        'title': 'Upload image',
+        'description': 'Upload and save images on server'
+      },
+      'delete_image': {
+        'title': 'Delete image',
+        'description': 'Delete one image file and data'
+      }
+    },
     upload: {
       image: {
         uploadPath: projectPath + '/files/uploads/images',
@@ -53,6 +71,19 @@ module.exports = function loadPlugin(projectPath, Plugin) {
 
   // ser plugin routes
   plugin.setRoutes({
+    // get logged in user avatar
+    'get /avatar/:id([0-9]+)': {
+      controller    : 'avatar',
+      action        : 'getAvatar',
+      permission    : 'find_user'
+    },
+    'post /api/v1/user/:id([0-9]+)/avatar': {
+      controller    : 'avatar',
+      action        : 'changeAvatar',
+      model         : 'user',
+      loadRecord    :  true,
+      permission    : 'update_user'
+    },
     //
     // --  Images routes
     //
