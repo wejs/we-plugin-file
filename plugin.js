@@ -293,18 +293,51 @@ module.exports = function loadPlugin(projectPath, Plugin) {
 
       var imageFields = Object.keys(fields);
 
+      if (!r._salvedImages) r._salvedImages = {};
+      if (!r._salvedImageAssocs) r._salvedImageAssocs = {};
+
       imageFields.forEach(function (fieldName) {
-        if (_.isEmpty(r.get(fieldName))) return;
-        functions.push(function (next) {
-          db.models.imageassoc.create({
-            modelName: Model.name,
-            modelId: r.id,
-            field: fieldName,
-            imageId: r.get(fieldName)
-          }).then(function (r) {
-            we.log.verbose('Image assoc created:', r);
-            next();
-          }).catch(next);
+        var values = r.get(fieldName);
+        if (_.isEmpty(values)) return;
+
+        var imagesToSave = [];
+        var newImageAssocs = [];
+
+        functions.push(function (nextField) {
+          async.each(values, function (value, next) {
+            if (!value || (value == 'null') ) return next();
+
+            // check if the image exists
+            db.models.image.find({
+              where:{ id: value.id || value }
+            }).then(function (i) {
+              if (!i) return next();
+
+              db.models.imageassoc.create({
+                modelName: Model.name,
+                modelId: r.id,
+                field: fieldName,
+                imageId: value.id || value
+              }).then(function (r) {
+                we.log.verbose('Image assoc created:', r.id);
+
+                imagesToSave.push(i);
+                newImageAssocs.push(r);
+
+                next();
+              }).catch(next);
+            }).catch(next);
+          }, function (err) {
+            if (err) return nextField(err);
+
+            r._salvedImageAssocs[fieldName] = newImageAssocs;
+            r._salvedImages[fieldName] = imagesToSave;
+            r.setDataValue(fieldName, imagesToSave.map(function (im) {
+              return im.toJSON();
+            }));
+
+            nextField();
+          });
         });
       });
       async.series(functions, done);
@@ -410,9 +443,15 @@ module.exports = function loadPlugin(projectPath, Plugin) {
   function getFieldSetter(fieldName) {
     return function setImages(val) {
       if (_.isArray(val)) {
-        this.setDataValue(fieldName, val);
+        var newVal = [];
+        // skip flags and invalid values
+        for (var i = 0; i < val.length; i++) {
+          if (val[i] && val[i] !== 'null') newVal.push(val[i]);
+        }
+        this.setDataValue(fieldName, newVal);
       } else if (val) {
-        this.setDataValue(fieldName, [val]);
+        // skip flags and invalid values
+        if (val && val !== 'null') this.setDataValue(fieldName, [val]);
       }
     }
   }
