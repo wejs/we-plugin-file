@@ -8,8 +8,7 @@ var gm = require('gm');
 var _ = require('lodash');
 
 module.exports = {
-
-  findOne : function (req, res) {
+  findOne: function findOne(req, res) {
     var we = req.getWe();
 
     var fileName = req.params.name;
@@ -31,7 +30,7 @@ module.exports = {
     }
 
     we.db.models.image.find({ where: {name: fileName} })
-    .then(function(image) {
+    .then(function (image) {
       // image not found
       if (!image) {
         we.log.silly('image:findOne: image not found:', fileName);
@@ -87,16 +86,15 @@ module.exports = {
    * Upload file to upload dir and save metadata on database
    */
   create: function createOneImage(req, res) {
-    // if (!req.isAuthenticated()) return res.forbidden('Logged in user not found');
     var we = req.getWe();
-
     // images in upload
     var files = req.files;
 
-    if (!files.image) return res.badRequest('File image not found');
-    if (!_.isObject(files.image)) return res.badRequest('File value is invalid');
+    if (!files.image) return res.badRequest('file.create.image.required');
 
-    we.log.debug('image:create: files.image to save:', files.image);
+    if (!_.isObject(files.image)) return res.badRequest('file.create.image.invalid');
+
+    we.log.verbose('image:create: files.image to save:', files.image);
 
     // get image size
     gm(files.image.path).size(function (err, size) {
@@ -110,7 +108,6 @@ module.exports = {
       files.image.mime = files.image.mimetype;
 
       if (req.isAuthenticated()) files.image.creatorId = req.user.id;
-
 
       res.locals.Model.create(files.image)
       .then(function (record) {

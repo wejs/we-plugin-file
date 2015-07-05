@@ -1,90 +1,47 @@
 /**
- * Images
+ * Image model
  *
  * @module      :: Model
- * @description :: A short summary of how this model works and what it represents.
  *
  */
-var  fs = require('fs');
+var fs = require('fs');
 var gm = require('gm');
 var async = require('async');
 var mkdirp = require('mkdirp');
 
-
 module.exports = function ImageModel(we) {
-
   // set sequelize model define and options
   var model = {
     definition: {
+      creatorId: {
+        type: we.db.Sequelize.BIGINT,
+        formFieldType: null
+      },
       // - user given data text
-      //
-      label: {
-        type: we.db.Sequelize.STRING
-      },
-      description: {
-        type: we.db.Sequelize.TEXT
-      },
-
+      label: { type: we.db.Sequelize.STRING },
+      description: { type: we.db.Sequelize.TEXT },
       // - data get from file
-      //
       name: {
         type: we.db.Sequelize.STRING,
         allowNull: false,
         unique: true
       },
 
-      size: {
-        type: we.db.Sequelize.INTEGER,
-      },
+      size: { type: we.db.Sequelize.INTEGER },
+      encoding: { type: we.db.Sequelize.STRING },
 
-      encoding: {
-        type: we.db.Sequelize.STRING,
-      },
+      active: { type: we.db.Sequelize.BOOLEAN, defaultValue: true },
 
-      active: {
-        type: we.db.Sequelize.BOOLEAN,
-        defaultValue: true
-      },
-
-      originalname: {
-        type: we.db.Sequelize.STRING
-      },
-
-      mime: {
-        type: we.db.Sequelize.STRING
-      },
-
-      extension: {
-        type: we.db.Sequelize.STRING
-      },
-
-      width: {
-        type: we.db.Sequelize.STRING
-      },
-
-      height: {
-        type: we.db.Sequelize.STRING
-      }
-    },
-
-    associations: {
-      creator:  {
-        type: 'belongsTo',
-        model: 'user',
-        inverse: 'images'
-      },
-      avatarOf: {
-        emberOnly: true,
-        type: 'hasOne',
-        model: 'user',
-        inverse: 'avatar',
-        foreignKey : 'avatarId'
-      }
+      originalname: { type: we.db.Sequelize.STRING },
+      mime: { type: we.db.Sequelize.STRING },
+      extension: { type: we.db.Sequelize.STRING },
+      width: { type: we.db.Sequelize.STRING },
+      height: { type: we.db.Sequelize.STRING }
     },
 
     options: {
       // table comment
-      comment: 'We.js we-core image table',
+      comment: 'We.js image table',
 
       classMethods: {
         getStyleUrlFromImage: function(image) {
@@ -116,7 +73,7 @@ module.exports = function ImageModel(we) {
 
           fs.readFile(path, function (err, contents) {
             if (err) {
-              if (err.code != 'ENOENT' || imageStyle == 'original' ) {
+              if (err.code !== 'ENOENT' || imageStyle === 'original' ) {
                 return callback(err);
               }
 
@@ -229,7 +186,6 @@ module.exports = function ImageModel(we) {
                 return next();
               });
             }
-
             we.log.error('Error on create image dir: ', imageDir);
             return next(err);
           } else {

@@ -3,6 +3,8 @@
  */
 var uuid = require('node-uuid');
 var mkdirp = require('mkdirp');
+var _ = require('lodash');
+var async = require('async');
 
 module.exports = function loadPlugin(projectPath, Plugin) {
   var plugin = new Plugin(__dirname);
@@ -19,6 +21,7 @@ module.exports = function loadPlugin(projectPath, Plugin) {
 
   // set plugin configs
   plugin.setConfigs({
+    clientComponentTemplates: { 'components-file': true },
     permissions: {
       'find_image': {
         'title': 'Find image',
@@ -40,30 +43,12 @@ module.exports = function loadPlugin(projectPath, Plugin) {
     upload: {
       image: {
         uploadPath: projectPath + '/files/uploads/images',
-        avaibleStyles: [
-          'mini',
-          'thumbnail',
-          'medium',
-          'large'
-        ],
-
+        avaibleStyles: [ 'mini', 'thumbnail', 'medium', 'large' ],
         styles: {
-          mini: {
-            width: '24',
-            heigth: '24'
-          },
-          thumbnail: {
-            width: '75',
-            heigth: '75'
-          },
-          medium: {
-            width: '250',
-            heigth: '250'
-          },
-          large: {
-            width: '640',
-            heigth: '640'
-          }
+          mini: { width: '24', heigth: '24' },
+          thumbnail: { width: '75', heigth: '75' },
+          medium: { width: '250', heigth: '250' },
+          large: { width: '640', heigth: '640' }
         }
       }
     }
@@ -159,13 +144,24 @@ module.exports = function loadPlugin(projectPath, Plugin) {
         onFileUploadStart: function(file) {
           // check if file is valir on upload start
           if (imageMimeTypes.indexOf(file.mimetype) < 0) {
-            log.debug('Image:onFileUploadStart: Invalid file type for file:', file);
+            console.log('Image:onFileUploadStart: Invalid file type for file:', file);
             // cancel upload on invalid type
             return false;
           }
         }
       }
     }
+  });
+
+  plugin.setTemplates({
+    'components-file': __dirname + '/server/templates/components-file.hbs',
+    'forms/file/image': __dirname + '/server/templates/forms/file/image.hbs'
+  });
+
+
+  plugin.addJs('we.component.imageSelector', {
+    type: 'plugin', weight: 20, pluginName: 'we-plugin-file',
+    path: 'files/public/we.components.imageSelector.js'
   });
 
   plugin.hooks.on('we:create:default:folders', function(we, done) {
@@ -175,6 +171,264 @@ module.exports = function loadPlugin(projectPath, Plugin) {
       done();
     })
   });
+
+  // use before instance to set sequelize virtual fields for term fields
+  plugin.hooks.on('we:models:before:instance', function (we, done) {
+    var f, cfgs;
+    var models = we.db.modelsConfigs;
+
+    for (var modelName in models) {
+      if (models[modelName].options && models[modelName].options.imageFields) {
+
+        for (f in models[modelName].options.imageFields) {
+          if (models[modelName].definition[f]) {
+            we.log.verbose('Field already defined for image field:', f);
+            continue;
+          }
+          // set field configs
+          cfgs = _.clone(models[modelName].options.imageFields[f]);
+          cfgs.type = we.db.Sequelize.VIRTUAL;
+          // set virtual setter
+          cfgs.set = getFieldSetter(f, cfgs);
+          // set virtual getter
+          cfgs.get = getFieldGetter(f, cfgs);
+          // set form field html
+          if (cfgs.formFieldMultiple) {
+            cfgs.formFieldType = 'file/images';
+          } else {
+            cfgs.formFieldType = 'file/image';
+          }
+          // set virtual fields for term fields if not exists
+          models[modelName].definition[f] = cfgs;
+        }
+      }
+    }
+
+    done();
+  });
+
+   // after define all models add term field hooks in models how have terms
+  plugin.hooks.on('we:models:set:joins', function (we, done) {
+    var models = we.db.models;
+    for (var modelName in models) {
+      var imageFields = we.file.image.getModelImageFields(
+        we.db.modelsConfigs[modelName]
+      );
+
+      if ( _.isEmpty(imageFields) ) continue;
+
+      models[modelName].addHook('afterFind', 'loadImages', we.file.image.afterFind);
+      models[modelName].addHook('afterCreate', 'createImage', we.file.image.afterCreatedRecord);
+      models[modelName].addHook('afterUpdate', 'updateImage', we.file.image.afterUpdatedRecord);
+      models[modelName].addHook('afterDestroy', 'destroyImage', we.file.image.afterDeleteRecord);
+    }
+
+    done();
+  });
+
+  plugin.events.on('we:after:load:plugins', function (we) {
+    if (!we.file) we.file = {};
+    if (!we.file.image) we.file.image = {};
+    var db = we.db;
+
+    we.file.image.getModelImageFields = function getModelImageFields(Model) {
+      if (!Model.options || !Model.options.imageFields) return null;
+      return Model.options.imageFields;
+    }
+
+    we.file.image.afterFind = function afterFind(r, opts, done) {
+      var Model = this;
+      if ( _.isArray(r) ) {
+        async.eachSeries(r, function (r1, next) {
+          // we.db.models.imageassoc
+          we.file.image.afterFindRecord.bind(Model)(r1, opts, next);
+        }, done);
+      } else {
+        we.file.image.afterFindRecord.bind(Model)(r, opts, done) ;
+      }
+    }
+    we.file.image.afterFindRecord = function afterFindRecord(r, opts, done) {
+      var functions = [];
+      var Model = this;
+      // found 0 results
+      if (!r) return done();
+
+      var fields = we.file.image.getModelImageFields(this);
+      if (!fields) return done();
+
+      if (!r._salvedImages) r._salvedImages = {};
+      if (!r._salvedImageAssocs) r._salvedImageAssocs = {};
+
+      var fieldNames = Object.keys(fields);
+      // for each field
+      fieldNames.forEach(function (fieldName) {
+        functions.push(function (next) {
+          return db.models.imageassoc.findAll({
+            where: { modelName: Model.name, modelId: r.id, field: fieldName },
+            include: [{ all: true }]
+          }).then(function (imgAssocs) {
+            if (_.isEmpty(imgAssocs)) return next();
+
+            r._salvedImages = imgAssocs.map(function (imgAssoc) {
+              return imgAssoc.image.toJSON();
+            });
+
+            r.setDataValue(fieldName, r._salvedImages);
+            // salved terms cache
+            r._salvedImageAssocs[fieldName] = imgAssocs;
+            return next();
+          }).catch(next);
+        });
+      });
+
+      async.series(functions, done);
+    }
+    // after create one record with image fields
+    we.file.image.afterCreatedRecord = function afterCreatedRecord(r, opts, done) {
+      var functions = [];
+      var Model = this;
+
+      var fields = we.file.image.getModelImageFields(this);
+      if (!fields) return done();
+
+      var imageFields = Object.keys(fields);
+
+      imageFields.forEach(function (fieldName) {
+        if (_.isEmpty(r.get(fieldName))) return;
+        functions.push(function (next) {
+          db.models.imageassoc.create({
+            modelName: Model.name,
+            modelId: r.id,
+            field: fieldName,
+            imageId: r.get(fieldName)
+          }).then(function (r) {
+            we.log.verbose('Image assoc created:', r);
+            next();
+          }).catch(next);
+        });
+      });
+      async.series(functions, done);
+    }
+    // after update one record with image fields
+    we.file.image.afterUpdatedRecord = function afterUpdatedRecord(r, opts, done) {
+      var Model = this;
+
+      var fields = we.file.image.getModelImageFields(this);
+      if (!fields) return done();
+
+      var fieldNames = Object.keys(fields);
+      async.eachSeries(fieldNames, function (fieldName, nextField) {
+        // check if user whant update this field
+        if (opts.fields.indexOf(fieldName) === -1) return nextField();
+
+        var imagesToSave = _.clone( r.get(fieldName) );
+        var newImageAssocs = [];
+        var newImageAssocsIds = [];
+
+        async.series([
+          function findOrCreateAllAssocs (done) {
+            var preloadedImagesAssocsToSave = [];
+
+            async.each(imagesToSave, function (its, next) {
+              if (_.isEmpty(its) || its == 'null') return next();
+
+              var values = {
+                modelName: Model.name,
+                modelId: r.id,
+                field: fieldName,
+                imageId: its.id || its
+              };
+              // check if this image exits
+              db.models.image.find({
+                where:{ id: its.id || its }
+              }).then(function (i) {
+                if (!i) return done();
+                // find of create the assoc
+                db.models.imageassoc.findOrCreate({
+                  where: values, defaults: values
+                }).then(function (r) {
+                  r[0].image = i;
+                  preloadedImagesAssocsToSave.push(r[0]);
+                  next();
+                }).catch(done);
+              });
+            }, function (err) {
+              if (err) return done(err);
+
+              imagesToSave = preloadedImagesAssocsToSave.map(function (r) {
+                newImageAssocsIds.push(r.id);
+                return r.image;
+              });
+
+              newImageAssocs = preloadedImagesAssocsToSave;
+              done();
+            });
+          },
+          // delete removed image assocs
+          function deleteAssocs(done) {
+            var query = { where: {
+              modelName: Model.name, modelId: r.id, field: fieldName
+            }}
+
+            if (!_.isEmpty(newImageAssocsIds)) query.where.id = { $notIn: newImageAssocsIds };
+
+            db.models.imageassoc.destroy(query).then(function (result) {
+              we.log.verbose('Result from deleted image assocs: ', result, fieldName, Model.name);
+              done();
+            }).catch(done);
+          },
+          function setRecorValues(done) {
+            r._salvedImages[fieldName] = imagesToSave;
+            r._salvedImageAssocs[fieldName] = newImageAssocs;
+            r.setDataValue(fieldName, imagesToSave.map(function (im) {
+              return im.toJSON();
+            }));
+            done();
+          }
+        ], nextField);
+      }, done);
+    }
+    // delete the image associations after delete related model
+    we.file.image.afterDeleteRecord = function afterDeleteRecord (r, opts, done) {
+      var Model = this;
+
+      db.models.modelsterms.destroy({
+        where: { modelName: Model.name, modelId: r.id }
+      }).then(function (result) {
+        we.log.debug('Deleted ' + result + ' image assocs from record with id: ' + r.id);
+        return done();
+      }).catch(done);
+    }
+  });
+
+  /**
+   * Get sequelize image field getter function
+   *
+   * @param  {{String}} fieldName
+   * @return {{Function}}
+   */
+  function getFieldSetter(fieldName) {
+    return function setImages(val) {
+      if (_.isArray(val)) {
+        this.setDataValue(fieldName, val);
+      } else if (val) {
+        this.setDataValue(fieldName, [val]);
+      }
+    }
+  }
+
+  /**
+   * Get sequelize image field setter function
+   *
+   * @param  {{String}} fieldName
+   * @return {{Function}}
+   */
+  function getFieldGetter(fieldName) {
+    return function getImages() {
+      // return the value or a empty array
+      return this.getDataValue(fieldName) || [];
+    }
+  }
 
   return plugin;
 };
