@@ -1,7 +1,7 @@
 /**
  * We image helper
  *
- * usage: {{we-iamge imageObject style}}
+ * usage: {{we-image imageObject style}}
  */
 
 module.exports = function(we) {
@@ -11,7 +11,7 @@ module.exports = function(we) {
    * @param  {String} format
    * @return {String}
    */
-  return function renderDate(image, style) {
+  return function render(image, style) {
     var options = arguments[arguments.length-1];
     var html = '';
 

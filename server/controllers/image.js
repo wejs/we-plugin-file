@@ -29,7 +29,7 @@ module.exports = {
       return res.badRequest('image.style.invalid');
     }
 
-    we.db.models.image.findOne({ where: {name: fileName} })
+    we.db.models.image.findOne({ where: { name: fileName} })
     .then(function (image) {
       // image not found
       if (!image) {
@@ -37,7 +37,7 @@ module.exports = {
         return res.notFound();
       }
 
-      we.log.verbose('image:findOne: image found:', image.get());
+      we.log.silly('image:findOne: image found:', image.get());
 
       we.db.models.image.getFileOrResize(fileName, imageStyle, function (err, contents) {
         if (err) {
