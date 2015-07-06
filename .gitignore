@@ -1,3 +1,4 @@
 node_modules
 coverage
-files
+files/uploads
+*.log

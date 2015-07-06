@@ -1,0 +1,106 @@
+/**
+ * We.js client side lib
+ */
+
+(function (we) {
+
+we.components.imageSelector = {
+  selectImage: function(cb) {
+    this.imageSelectedHandler = cb;
+
+    this.modal.modal('show');
+  },
+  imageSelected: function(err, image) {
+    this.imageSelectedHandler(err, image);
+
+    this.modal.modal('hide');
+    this.imageSelectedHandler = null;
+  },
+  imageSelectedHandler: null,
+  init: function init(selector) {
+    var self = this;
+    this.modal = $(selector);
+    this.messagesArea = this.modal.find('.image-uploader-messages');
+    this.uploader = this.modal.find('.fileupload');
+    this.progress = this.modal.find('.progress');
+    this.progressBar = this.progress.find('.progress-bar');
+
+    // Change this to the location of your server-side upload handler:
+    this.uploader.fileupload({
+      dataType: 'json',
+      sequentialUploads: true,
+      add: function (e, data) {
+        data.submit();
+        self.progress.show();
+      },
+      done: function (e, data) {
+        if (self.imageSelectedHandler) {
+          self.imageSelectedHandler(null, data.result.image[0]);
+          self.modal.modal('hide');
+        } else {
+          console.log('TODO show done in image selector modal');
+        }
+        we.imageSelectedHandler = null;
+        self.progress.hide();
+        self.progressBar.css( 'width', '0%' );
+      },
+      progressall: function (e, data) {
+        var progress = parseInt(data.loaded / data.total * 100, 10);
+        self.progressBar.css( 'width', progress + '%' );
+      },
+      fail: function (e, data) {
+        var xhr = data.jqXHR;
+        if (xhr.responseJSON && xhr.responseJSON.messages) {
+          for(var i = 0; i < xhr.responseJSON.messages.length; i++) {
+            var msg = xhr.responseJSON.messages[i];
+              newMessage(msg.status, msg.message);
+          }
+        }
+      }
+    }).prop('disabled', !$.support.fileInput)
+    .parent().addClass($.support.fileInput ? undefined : 'disabled');
+
+    function newMessage(status, message) {
+     self.messagesArea.append('<div data-dismiss="alert" aria-label="Close" class="alert alert-' + status + '">'+
+        '<button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">×</span></button>' +
+       message + ' </div>');
+    }
+
+  },
+  selectImageForField: function(selector, name) {
+    var self = this;
+    this.selectImage(function (err, image) {
+      if (err) throw new Error('Error on select image.');
+      self.showFieldImageData(selector, name, image);
+    });
+  },
+
+  showFieldImageSelector: function(fieldSelector) {
+
+  },
+
+  showFieldImageData: function(fieldSelector, name, image) {
+    var row = $(fieldSelector + 'ImageFieldTemplates tr').clone();
+    row.find('td[data-image-name]').html(image.originalname);
+    row.find('td[data-image-thumbnail]').html(
+      '<img src="'+ image.urls.thumbnail +'">' +
+      '<input name="'+name+'" type="hidden" value="'+image.id+'">'
+    );
+
+    $(fieldSelector + 'ImageBTNSelector').hide();
+    $(fieldSelector + 'ImageTable tbody').append(row);
+    $(fieldSelector + 'ImageTable').show();
+  },
+
+  removeImage: function(e, selector) {
+    var tbody = $(e).parent().parent().parent();
+    $(e).parent().parent().remove();
+
+    if (!tbody.find('tr').length) {
+      $(selector + 'ImageBTNSelector').show();
+      $(selector + 'ImageTable').hide();
+    }
+  }
+}
+
+})(window.we);
