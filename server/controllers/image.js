@@ -19,17 +19,17 @@ module.exports = {
 
     var avaibleImageStyles = we.db.models.image.getImageStyles();
 
-    var imageStyle = req.param.style;
+    var imageStyle = req.params.style;
     if (!imageStyle) {
       imageStyle = 'original';
     } else if(
       imageStyle !== 'original' &&
       avaibleImageStyles.indexOf(imageStyle) === -1)
     {
-      return res.badRequest('Image style invalid');
+      return res.badRequest('image.style.invalid');
     }
 
-    we.db.models.image.find({ where: {name: fileName} })
+    we.db.models.image.findOne({ where: {name: fileName} })
     .then(function (image) {
       // image not found
       if (!image) {
@@ -37,9 +37,9 @@ module.exports = {
         return res.notFound();
       }
 
-      we.log.silly('image:findOne: image found:', image);
+      we.log.verbose('image:findOne: image found:', image.get());
 
-      we.db.models.image.getFileOrResize(fileName, imageStyle, function(err, contents) {
+      we.db.models.image.getFileOrResize(fileName, imageStyle, function (err, contents) {
         if (err) {
           we.log.error('Error on getFileOrResize:', fileName, err);
           return res.serverError(err);
@@ -52,6 +52,12 @@ module.exports = {
         } else {
           res.contentType('image/png');
         }
+
+        // set http cache headers
+        if (!res.getHeader('Cache-Control'))
+          res.setHeader('Cache-Control', 'public, max-age='+we.config.cache.maxage);
+        res.setHeader('Last-Modified', (new Date(image.updatedAt)).toUTCString());
+
         return res.send(contents);
       })
     });

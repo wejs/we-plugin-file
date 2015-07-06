@@ -158,6 +158,9 @@ module.exports = function loadPlugin(projectPath, Plugin) {
     'forms/file/image': __dirname + '/server/templates/forms/file/image.hbs'
   });
 
+  plugin.setHelpers({
+    'we-image': __dirname + '/server/helpers/we-image.js'
+  });
 
   plugin.addJs('we.component.imageSelector', {
     type: 'plugin', weight: 20, pluginName: 'we-plugin-file',
