@@ -27,6 +27,6 @@ module.exports = function(we) {
 
     html += '<img src="'+image.urls[style]+'" '+attributes+' >';
 
-    return html;
+    return new we.hbs.SafeString(html);
   }
 }
