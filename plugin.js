@@ -428,7 +428,7 @@ module.exports = function loadPlugin(projectPath, Plugin) {
     we.file.image.afterDeleteRecord = function afterDeleteRecord (r, opts, done) {
       var Model = this;
 
-      db.models.modelsterms.destroy({
+      db.models.imageassoc.destroy({
         where: { modelName: Model.name, modelId: r.id }
       }).then(function (result) {
         we.log.debug('Deleted ' + result + ' image assocs from record with id: ' + r.id);
