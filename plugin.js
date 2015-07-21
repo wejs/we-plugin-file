@@ -154,12 +154,7 @@ module.exports = function loadPlugin(projectPath, Plugin) {
   });
 
   plugin.setTemplates({
-    'components-file': __dirname + '/server/templates/components-file.hbs',
     'forms/file/image': __dirname + '/server/templates/forms/file/image.hbs'
-  });
-
-  plugin.setHelpers({
-    'we-image': __dirname + '/server/helpers/we-image.js'
   });
 
   plugin.addJs('we.component.imageSelector', {
