@@ -137,7 +137,7 @@ module.exports = function loadPlugin(projectPath, Plugin) {
       permission    : 'upload_image',
       upload: {
         // TODO change to temp dir
-        dest: projectPath + '/files/uploads/files',
+        dest: projectPath + '/files/uploads/images/original',
         /**
          * Rename file
          * @param  {string} fieldname
@@ -163,8 +163,6 @@ module.exports = function loadPlugin(projectPath, Plugin) {
         }
       }
     },
-
-
     'post /api/v1/file': {
       controller    : 'file',
       action        : 'create',
