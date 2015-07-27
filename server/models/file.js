@@ -3,8 +3,6 @@
  *
  * @module      :: Model
  */
-var fs = require('fs');
-var async = require('async');
 var mkdirp = require('mkdirp');
 
 module.exports = function FileModel(we) {
@@ -27,8 +25,8 @@ module.exports = function FileModel(we) {
       active: { type: we.db.Sequelize.BOOLEAN, defaultValue: true },
 
       originalname: { type: we.db.Sequelize.STRING },
-      mime: { type: we.db.Sequelize.STRING },
-      extension: { type: we.db.Sequelize.STRING }
+      mime: { type: we.db.Sequelize.STRING(50) },
+      extension: { type: we.db.Sequelize.STRING(10) }
     },
     associations: {
       creator: { type: 'belongsTo', model: 'user' }
@@ -72,31 +70,12 @@ module.exports = function FileModel(we) {
   }
 
   we.hooks.on('we:create:default:folders', function (we, done) {
-    // create image upload path
-    mkdirp(we.config.upload.image.uploadPath, function (err) {
+    // create file upload path
+    mkdirp(we.config.upload.file.uploadPath, function (err) {
       if (err) we.log.error('Error on create image upload path', err);
-
-      var imageStyles = we.db.models.image.getImageStyles();
-
-      async.each(imageStyles, function (style, next) {
-        var imageDir = we.config.upload.image.uploadPath + '/' + style;
-        fs.lstat(imageDir, function (err) {
-          if (err) {
-            if (err.code === 'ENOENT') {
-              we.log.info('Creating the image upload directory: ' + imageDir);
-              return mkdirp(imageDir, function (err) {
-                if (err) we.log.error('Error on create upload path', err);
-                return next();
-              });
-            }
-            we.log.error('Error on create image dir: ', imageDir);
-            return next(err);
-          } else {
-            next();
-          }
-        });
-      }, done);
     })
+
+    done();
   });
 
   return model;
