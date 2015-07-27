@@ -13,10 +13,6 @@ module.exports = function ImageModel(we) {
   // set sequelize model define and options
   var model = {
     definition: {
-      creatorId: {
-        type: we.db.Sequelize.BIGINT,
-        formFieldType: null
-      },
       // - user given data text
       label: { type: we.db.Sequelize.STRING },
       description: { type: we.db.Sequelize.TEXT },
@@ -38,8 +34,11 @@ module.exports = function ImageModel(we) {
       width: { type: we.db.Sequelize.STRING },
       height: { type: we.db.Sequelize.STRING }
     },
-
+    associations: {
+      creator: { type: 'belongsTo', model: 'user' }
+    },
     options: {
+
       // table comment
       comment: 'We.js image table',
 
