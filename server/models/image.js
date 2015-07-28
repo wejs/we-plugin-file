@@ -152,19 +152,6 @@ module.exports = function ImageModel(we) {
           obj.urls = we.db.models.image.getStyleUrlFromImage(obj);
           return obj;
         }
-      },
-      hooks: {
-        beforeCreate: function(record, options, next) {
-          // sanitize
-          record = we.sanitizer.sanitizeAllAttr(record);
-          next();
-        },
-
-        beforeUpdate: function(record, options, next) {
-          // sanitize
-          record = we.sanitizer.sanitizeAllAttr(record);
-          next();
-        }
       }
     }
   }
@@ -307,7 +294,7 @@ module.exports = function ImageModel(we) {
         });
       });
 
-      async.series(functions, done);
+      async.parallel(functions, done);
     }
     // after create one record with image fields
     we.file.image.afterCreatedRecord = function afterCreatedRecord(r, opts, done) {
@@ -463,8 +450,8 @@ module.exports = function ImageModel(we) {
   /**
    * Get sequelize image field getter function
    *
-   * @param  {{String}} fieldName
-   * @return {{Function}}
+   * @param  {String} fieldName
+   * @return {Function}
    */
   function getFieldSetter(fieldName) {
     return function setImages(val) {
@@ -485,8 +472,8 @@ module.exports = function ImageModel(we) {
   /**
    * Get sequelize image field setter function
    *
-   * @param  {{String}} fieldName
-   * @return {{Function}}
+   * @param  {String} fieldName
+   * @return {Function}
    */
   function getFieldGetter(fieldName) {
     return function getImages() {

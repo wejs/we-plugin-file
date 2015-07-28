@@ -1,1 +1,38 @@
-file.hbs
+<div id="{{fieldId}}" class="form-group {{#if error}}has-error has-feedback{{/if}}">
+  <label for="{{fieldId}}">{{t fieldName}} {{#ifCond field.allowNull false}}*{{/ifCond}}</label>
+
+  <button id="{{fieldId}}FileBTNSelector" type="button" onclick="we.components.fileSelector.selectFileForField('#{{fieldId}}', '{{name}}');" class="btn btn-default"   {{#if value}}style="display:none;"{{/if}} >{{t 'file.file.select.btn'}}</button>
+
+  <input name="{{name}}" type="hidden" value="null">
+
+  <table id="{{fieldId}}FileTable" class="table table-bordered" {{#unless value}}style="display:none;"{{/unless}} >
+    <thead><tr>
+      <th>{{t 'Name'}}</th>
+      <th>{{t 'Actions'}}</th>
+    </tr></thead>
+    <tbody>
+      {{#each value}}
+        <tr>
+          <td data-file-name>{{originalname}}</td>
+          <td>
+            <button onclick="we.components.fileSelector.removeFile(this, '#{{../fieldId}}')" type="button" class="btn btn-danger">{{t 'file.remove'}}</button>
+            <input name="{{../name}}" type="hidden" value="{{id}}">
+          </td>
+        </tr>
+      {{/each}}
+    </tbody>
+  </table>
+
+  <div id="{{fieldId}}FileFieldTemplates" style="display:none;">
+    <table><tr>
+      <td data-file-name></td>
+      <td>
+        <button onclick="we.components.fileSelector.removeFile(this, '#{{fieldId}}')" type="button" class="btn btn-danger">{{t 'file.remove'}}</button>
+      </td>
+    </tr></table>
+  </div>
+
+  <p class="help-block">{{t help}}</p>
+
+  {{{field-help-error error}}}
+</div>

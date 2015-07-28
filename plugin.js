@@ -185,6 +185,9 @@ module.exports = function loadPlugin(projectPath, Plugin) {
           files: 1,
           fileSize: 10*1000000, // 10MB
           fieldSize: 20*1000000 // 20MB
+        },
+        onFileUploadStart: function(file, x) {
+          console.log('>>', file, x, this);
         }
       }
     }
@@ -194,6 +197,11 @@ module.exports = function loadPlugin(projectPath, Plugin) {
     type: 'plugin', weight: 20, pluginName: 'we-plugin-file',
     path: 'files/public/we.components.imageSelector.js'
   });
+  plugin.addJs('we.component.fileSelector', {
+    type: 'plugin', weight: 20, pluginName: 'we-plugin-file',
+    path: 'files/public/we.components.fileSelector.js'
+  });
+
 
   return plugin;
 };
