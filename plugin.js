@@ -186,9 +186,9 @@ module.exports = function loadPlugin(projectPath, Plugin) {
           fileSize: 10*1000000, // 10MB
           fieldSize: 20*1000000 // 20MB
         },
-        onFileUploadStart: function(file, x) {
-          console.log('>>', file, x, this);
-        }
+        // onFileUploadStart: function(file, x) {
+        //   console.log('>>', file, x, this);
+        // }
       }
     }
   });
