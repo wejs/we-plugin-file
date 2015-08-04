@@ -350,9 +350,10 @@ module.exports = function FileModel(we) {
           if (val[i] && val[i] !== 'null') newVal.push(val[i]);
         }
         this.setDataValue(fieldName, newVal);
-      } else if (val) {
-        // skip flags and invalid values
-        if (val && val !== 'null') this.setDataValue(fieldName, [val]);
+      } else if (val && val !== 'null') {
+        this.setDataValue(fieldName, [val]);
+      } else {
+        this.setDataValue(fieldName, null);
       }
     }
   }

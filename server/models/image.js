@@ -365,7 +365,8 @@ module.exports = function ImageModel(we) {
       var fieldNames = Object.keys(fields);
       async.eachSeries(fieldNames, function (fieldName, nextField) {
         // check if user whant update this field
-        if (opts.fields.indexOf(fieldName) === -1) return nextField();
+        if (opts.fields.indexOf(fieldName) === -1)
+          return nextField();
 
         var imagesToSave = _.clone( r.get(fieldName) );
         var newImageAssocs = [];
@@ -462,9 +463,10 @@ module.exports = function ImageModel(we) {
           if (val[i] && val[i] !== 'null') newVal.push(val[i]);
         }
         this.setDataValue(fieldName, newVal);
-      } else if (val) {
-        // skip flags and invalid values
-        if (val && val !== 'null') this.setDataValue(fieldName, [val]);
+      } else if (val && val !== 'null') {
+        this.setDataValue(fieldName, [val]);
+      } else {
+        this.setDataValue(fieldName, null);
       }
     }
   }
