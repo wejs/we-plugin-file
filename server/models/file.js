@@ -128,7 +128,7 @@ module.exports = function FileModel(we) {
     var db = we.db;
 
     we.file.file.getModelFileFields = function getModelFileFields(Model) {
-      if (!Model.options || !Model.options.fileFields) return null;
+      if (!Model || !Model.options || !Model.options.fileFields) return null;
       return Model.options.fileFields;
     }
 

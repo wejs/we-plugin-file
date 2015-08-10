@@ -245,7 +245,7 @@ module.exports = function ImageModel(we) {
     var db = we.db;
 
     we.file.image.getModelImageFields = function getModelImageFields(Model) {
-      if (!Model.options || !Model.options.imageFields) return null;
+      if (!Model || !Model.options || !Model.options.imageFields) return null;
       return Model.options.imageFields;
     }
 
