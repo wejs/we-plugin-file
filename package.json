@@ -37,9 +37,6 @@
     "we-theme-admin-default": "^0.3.1",
     "we-theme-site-wejs": "^0.3.10"
   },
-  "peerDependencies": {
-    "we-core": "^0.3.26"
-  },
   "repository": {
     "type": "git",
     "url": "git@github.com:wejs/we-plugin-file.git"
