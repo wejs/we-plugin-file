@@ -1,11 +1,14 @@
 <div id="{{fieldId}}" class="form-group {{#if error}}has-error has-feedback{{/if}}">
   <label for="{{fieldId}}">{{t fieldName}} {{#ifCond field.allowNull false}}*{{/ifCond}}</label>
 
-  <button id="{{fieldId}}FileBTNSelector" type="button" onclick="we.components.fileSelector.selectFileForField('#{{fieldId}}', '{{name}}');" class="btn btn-default"   {{#if value}}style="display:none;"{{/if}} >{{t 'file.file.select.btn'}}</button>
+  <button id="{{fieldId}}FileBTNSelector" type="button" onclick="we.components.fileSelector.selectFileForField('#{{fieldId}}', '{{name}}');" class="btn btn-default"   {{#ifCond value 'null'}}{{else}}{{#if value}}style="display:none;"{{/if}}{{/ifCond}}>{{t 'file.file.select.btn'}}</button>
 
   <input name="{{name}}" type="hidden" value="null">
 
-  <table id="{{fieldId}}FileTable" class="table table-bordered" {{#unless value}}style="display:none;"{{/unless}} >
+  <table id="{{fieldId}}FileTable" class="table table-bordered"
+    {{#ifCond value 'null'}}style="display:none;"{{/ifCond}}
+    {{#unless value}}style="display:none;"{{/unless}}
+  >
     <thead><tr>
       <th>{{t 'Name'}}</th>
       <th>{{t 'Actions'}}</th>
