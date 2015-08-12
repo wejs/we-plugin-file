@@ -41,12 +41,12 @@ module.exports = function FileModel(we) {
       classMethods: {
         getStyleUrlFromFile: function(r) {
           return {
-            original: we.config.hostname + '/api/v1/file/original/' + r.name
+            original: we.config.hostname + '/api/v1/file/' + r.name
           };
         },
 
         getFilePath: function getFilePath(fileName) {
-          return we.config.upload.file.uploadPath + '/original/' + fileName;
+          return we.config.upload.file.uploadPath + '/' + fileName;
         }
       },
 
@@ -55,6 +55,9 @@ module.exports = function FileModel(we) {
           var obj = this.get();
           obj.urls = we.db.models.file.getStyleUrlFromFile(obj);
           return obj;
+        },
+        getFilePath: function getFilePath() {
+          return we.db.models.file.getFilePath(this.name);
         }
       }
     }

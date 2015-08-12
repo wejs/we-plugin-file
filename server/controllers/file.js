@@ -23,5 +23,25 @@ module.exports = {
       return res.created(record);
     });
   },
+  download: function download(req, res) {
+    var fileName = req.params.name;
+
+    if (!fileName) {
+      return res.badRequest('file:download: fileName is required');
+    }
+
+    req.we.db.models.file.findOne({
+      where: { name: fileName}
+    }).then(function (file) {
+      // file not found
+      if (!file) {
+        req.we.log.silly('file:download: file not found:', fileName);
+        return res.notFound();
+      }
+
+      var filePath = file.getFilePath();
+      res.sendFile(filePath);
+    }).catch(res.queryError);
+  }
 
 };

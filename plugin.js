@@ -163,6 +163,20 @@ module.exports = function loadPlugin(projectPath, Plugin) {
         }
       }
     },
+    'get /api/v1/file/:id([0-9]+)': {
+      controller    : 'file',
+      action        : 'findOne',
+      model         : 'file',
+      responseType  : 'json',
+      permission    : 'find_file'
+    },
+    'get /api/v1/file/:name': {
+      controller    : 'file',
+      action        : 'download',
+      model         : 'file',
+      responseType  : 'json',
+      permission    : 'find_file'
+    },
     'post /api/v1/file': {
       controller    : 'file',
       action        : 'create',
