@@ -3,9 +3,7 @@
   "description": "We.js file plugin",
   "version": "0.3.11",
   "dependencies": {
-    "async": "^0.9.0",
     "gm": "^1.16.0",
-    "lodash": "^2.4.1",
     "mime": "^1.2.11",
     "mkdirp": "^0.5.1",
     "mv": "^2.0.3",

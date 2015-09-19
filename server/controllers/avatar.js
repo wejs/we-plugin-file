@@ -7,16 +7,12 @@
 var fs = require('fs');
 
 module.exports = {
-  _config: {
-    rest: false
-  },
-
   /**
    * Get user avatar with user id
    *
    */
   getAvatar: function getAvatar(req, res) {
-    var we = req.getWe();
+    var we = req.we;
 
     var id = req.params.id;
     var style = req.params.style;
@@ -28,36 +24,29 @@ module.exports = {
     }
 
     var defaultAvatarPath = we.config.defaultUserAvatar;
-
     if(!id) return res.forbidden();
 
-    we.db.models.user.findById(id).then(function (user) {
-      if (user && user.avatarId) {
-        we.db.models.image.findById(user.avatarId).then(function (image) {
-          if (!image) return res.notFound();
+    we.db.models.user.findById(id)
+    .then(function (user) {
+      if (user && user.avatar && user.avatar[0]) {
+        var image = user.avatar[0];
+        we.db.models.image.getFileOrResize(image.name, style, function (err, contents) {
+          if(err) {
+            we.log.error('Error on get avatar: ', err);
+            return res.serverError();
+          }
+          if (!contents) return res.notFound();
 
-          we.db.models.image.getFileOrResize(image.name, style, function (err, contents) {
-            if(err) {
-              we.log.error('Error on get avatar: ', err);
-              return res.serverError();
-            }
-
-            if (!contents) return res.notFound();
-
-            if (image.mime) {
-              res.contentType(image.mime);
-            } else {
-              res.contentType('image/png');
-            }
-
-            res.send(contents);
-          });
-
-        })
+          if (image.mime) {
+            res.contentType(image.mime);
+          } else {
+            res.contentType('image/png');
+          }
+          res.send(contents);
+        });
       } else {
         fs.readFile(defaultAvatarPath, function (err, contents) {
           if (err) return res.serverError(err);
-
           res.contentType('image/png');
           res.send(contents);
         });

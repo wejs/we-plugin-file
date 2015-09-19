@@ -5,7 +5,6 @@
  * @description :: Contains logic for handling requests.
  */
 var gm = require('gm');
-var _ = require('lodash');
 
 module.exports = {
   findOne: function findOne(req, res) {
@@ -98,7 +97,7 @@ module.exports = {
 
     if (!files.image) return res.badRequest('file.create.image.required');
 
-    if (!_.isObject(files.image)) return res.badRequest('file.create.image.invalid');
+    if (!we.utils._.isObject(files.image)) return res.badRequest('file.create.image.invalid');
 
     we.log.verbose('image:create: files.image to save:', files.image);
 

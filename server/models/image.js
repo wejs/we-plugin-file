@@ -220,7 +220,7 @@ module.exports = function ImageModel(we) {
     done();
   });
 
-   // after define all models add term field hooks in models how have terms
+   // after define all models add image field hooks in models how have images
   we.hooks.on('we:models:set:joins', function (we, done) {
     var models = we.db.models;
     for (var modelName in models) {
