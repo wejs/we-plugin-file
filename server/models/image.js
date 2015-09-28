@@ -151,6 +151,9 @@ module.exports = function ImageModel(we) {
           var obj = this.get();
           obj.urls = we.db.models.image.getStyleUrlFromImage(obj);
           return obj;
+        },
+        getImagePath: function(imageStyle) {
+          return we.db.models.image.getImagePath(imageStyle, this.name);
         }
       }
     }
