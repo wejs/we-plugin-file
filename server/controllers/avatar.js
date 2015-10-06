@@ -56,7 +56,7 @@ module.exports = {
 
   changeAvatar: function changeAvatar(req, res) {
     if (!req.isAuthenticated()) return res.forbidden();
-    if (!res.locals.record) return res.notFound();
+    if (!res.locals.data) return res.notFound();
 
     var we = req.getWe();
 
@@ -76,7 +76,7 @@ module.exports = {
       req.user.avatar = image.id;
 
       // update db user
-      res.locals.record.setAvatar(image).then(function() {
+      res.locals.data.setAvatar(image).then(function() {
         res.send({
           'user': req.user
         });

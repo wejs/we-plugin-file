@@ -128,7 +128,7 @@ module.exports = {
   cropImage: function cropImage(req, res) {
     var we = req.getWe();
 
-    if (!res.locals.record) return res.notFound();
+    if (!res.locals.data) return res.notFound();
 
     var cords = {};
     cords.width = req.body.w;
@@ -140,28 +140,28 @@ module.exports = {
       return res.badRequest('Width, height, x and y params is required');
     }
 
-    var originalFile = we.db.models.image.getImagePath('original', res.locals.record.name);
+    var originalFile = we.db.models.image.getImagePath('original', res.locals.data.name);
 
     we.log.verbose('resize image to:', cords);
 
     we.db.models.image
     .resizeImageAndReturnSize(originalFile, cords, function(err, size) {
-      res.locals.record.width = size.width;
-      res.locals.record.height = size.height;
+      res.locals.data.width = size.width;
+      res.locals.data.height = size.height;
 
       // save the new width and height on db
-      res.locals.record.save().then(function() {
+      res.locals.data.save().then(function() {
         we.log.verbose('result:',size.width, size.width);
 
         // delete old auto generated image styles
         we.db.models.image
-        .deleteImageStylesWithImageName(res.locals.record.name, function(err){
+        .deleteImageStylesWithImageName(res.locals.data.name, function(err){
           if (err){
-            we.log.error('Error on delete old image styles:',res.locals.record, err);
+            we.log.error('Error on delete old image styles:',res.locals.data, err);
             return res.send(500);
           }
           res.send({
-            image: res.locals.record
+            image: res.locals.data
           });
         });
       })
