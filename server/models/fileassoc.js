@@ -23,7 +23,7 @@ module.exports = function ImageAssocModel(we) {
       },
       order: {
         type: we.db.Sequelize.BOOLEAN,
-        defaultValue: 0
+        defaultValue: false
       }
     },
     associations: {
