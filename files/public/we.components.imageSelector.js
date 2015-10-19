@@ -35,7 +35,7 @@ we.components.imageSelector = {
       },
       done: function (e, data) {
         if (self.imageSelectedHandler) {
-          self.imageSelectedHandler(null, data.result.image[0]);
+          self.imageSelectedHandler(null, data.result.image);
           self.modal.modal('hide');
         } else {
           console.log('TODO show done in image selector modal');
