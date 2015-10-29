@@ -10,38 +10,47 @@
       <div class="modal-body">
         <div class="image-uploader-messages"></div>
 
-<div>
-  <!-- Nav tabs -->
-  <ul class="nav nav-tabs" role="tablist">
-    <li role="presentation" class="active"><a href="#imageUploadTab" aria-controls="imageUploadTab" role="tab" data-toggle="tab">{{t 'image.uploader.title'}}</a></li>
-    <li role="presentation"><a href="#imageFileListTab" aria-controls="imageFileListTab" role="tab" data-toggle="tab">{{t 'image.selector.title'}}</a></li>
-  </ul>
-  <!-- Tab panes -->
-  <div class="tab-content">
-    <br>
-    <div role="tabpanel" class="tab-pane active" id="imageUploadTab">.
-      <!-- The fileinput-button span is used to style the file input field as button -->
-      <span class="btn btn-success fileinput-button">
-        <i class="glyphicon glyphicon-plus"></i>
-        <span>{{t 'image.upload.selector.btn'}}</span>
-        <!-- The file input field used as target for the file upload widget -->
-        <input class="fileupload" type="file" data-url="/api/v1/image" name="image">
-      </span>
-      <br>
-      <br>
-      <!-- The global progress bar -->
-      <div class="progress" style="display:none;">
-        <div class="progress-bar progress-bar-success"></div>
-      </div>
-      <!-- The container for the uploaded files -->
-      <div id="files" class="files"></div>
-    </div>
-    <div role="tabpanel" class="tab-pane" id="imageFileListTab">
-      <br>
-      add image list here
-    </div>
-  </div>
-</div>
+          <div>
+            <!-- Nav tabs -->
+            <ul class="nav nav-tabs" role="tablist">
+              <li role="presentation" class="active"><a href="#imageUploadTab" aria-controls="imageUploadTab" role="tab" data-toggle="tab">{{t 'image.uploader.title'}}</a></li>
+              <li role="presentation">
+                <a  id="imageFileListTabLink" href="#imageFileListTab" aria-controls="imageFileListTab" role="tab" data-toggle="tab" onclick="we.components.imageSelector.startImageBrowser('#imageFileListTab');">{{t 'image.selector.title'}}</a>
+              </li>
+            </ul>
+            <!-- Tab panes -->
+            <div class="tab-content">
+              <br>
+
+              {{!-- File uploader --}}
+              <div role="tabpanel" class="tab-pane active" id="imageUploadTab">.
+                <!-- The fileinput-button span is used to style the file input field as button -->
+                <span class="btn btn-success fileinput-button">
+                  <i class="glyphicon glyphicon-plus"></i>
+                  <span>{{t 'image.upload.selector.btn'}}</span>
+                  <!-- The file input field used as target for the file upload widget -->
+                  <input class="fileupload" type="file" data-url="/api/v1/image" name="image">
+                </span>
+                <br>
+                <br>
+                <!-- The global progress bar -->
+                <div class="progress" style="display:none;">
+                  <div class="progress-bar progress-bar-success"></div>
+                </div>
+                <!-- The container for the uploaded files -->
+                <div id="files" class="files"></div>
+              </div>
+
+              {{!-- File browser --}}
+              <div role="tabpanel" class="tab-pane" id="imageFileListTab">
+                <br>
+
+
+                <div id="weImageBrowser" class="we-image-browser">111</div>
+
+              </div>
+            </div>
+          </div>
 
       </div>
     </div>

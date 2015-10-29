@@ -7,6 +7,15 @@
 var gm = require('gm');
 
 module.exports = {
+  find: function findAll(req, res) {
+    return res.locals.Model.findAndCountAll(res.locals.query)
+    .then(function (record) {
+      res.locals.metadata.count = record.count;
+      res.locals.data = record.rows;
+      return res.ok();
+    }).catch(res.queryError);
+  },
+
   findOne: function findOne(req, res) {
     var we = req.getWe();
 

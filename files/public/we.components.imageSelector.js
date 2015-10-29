@@ -2,9 +2,11 @@
  * We.js client side lib
  */
 
-(function (we) {
+(function (we, $) {
 
 we.components.imageSelector = {
+  host: '',
+
   selectImage: function(cb) {
     this.imageSelectedHandler = cb;
 
@@ -62,7 +64,8 @@ we.components.imageSelector = {
 
     function newMessage(status, message) {
      self.messagesArea.append('<div data-dismiss="alert" aria-label="Close" class="alert alert-' + status + '">'+
-        '<button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">×</span></button>' +
+        '<button type="button" class="close" data-dismiss="alert" aria-label="Close">'+
+          '<span aria-hidden="true">×</span></button>'+
        message + ' </div>');
     }
 
@@ -100,7 +103,46 @@ we.components.imageSelector = {
       $(selector + 'ImageBTNSelector').show();
       $(selector + 'ImageTable').hide();
     }
+  },
+
+  startImageBrowser: function(selector) {
+    var container = $(selector);
+    container.text('');
+    this.loadImages(container);
+  },
+
+  loadImages: function(container) {
+    var self = this;
+    this.getImagesFromServer().then(function (res){
+      res.image.forEach(function (image){
+        container.append(self.renderImage(image, 'medium'));
+      });
+    });
+  },
+
+  renderImage: function(image, style) {
+    var self = this;
+    var img = document.createElement('img');
+    img.src = image.urls[style];
+    img.onclick = function() {
+      if (self.imageSelected) {
+        self.imageSelected(null, this);
+      }
+    }.bind(image)
+    return $(img);
+  },
+
+  getImagesFromServer: function() {
+    var cfgs = {
+      url: this.host + '/api/v1/image',
+      type: 'GET',
+      dataType: 'json',
+      cache: false,
+      headers: { Accept : 'application/json' }
+    };
+
+    return $.ajax(cfgs);
   }
 }
 
-})(window.we);
+})(window.we, window.jQuery);

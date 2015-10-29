@@ -47,6 +47,10 @@ module.exports = function loadPlugin(projectPath, Plugin) {
       'delete_file': {
         'title': 'Delete file',
         'description': 'Delete one file file and data'
+      },
+      'find_user_image': {
+        'title': 'Find user images',
+        'description': ' '
       }
     },
     upload: {
@@ -203,6 +207,24 @@ module.exports = function loadPlugin(projectPath, Plugin) {
         // onFileUploadStart: function(file, x) {
         //   console.log('>>', file, x, this);
         // }
+      }
+    },
+    // user image routes
+    'get /user/:userId/image': {
+      controller    : 'image',
+      action        : 'find',
+      model         : 'image',
+      permission    : 'find_user_image',
+      search: {
+        currentUserIs: {
+          parser: 'paramIs',
+          param: 'userId',
+          runIfNull: true,
+          target: {
+            type: 'field',
+            field: 'creatorId'
+          }
+        }
       }
     }
   });
