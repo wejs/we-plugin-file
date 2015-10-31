@@ -1,7 +1,5 @@
 # We.js File plugin
 
-[![Dependency Status](https://david-dm.org/wejs/we-plugin-file.png)](https://david-dm.org/wejs/we-plugin-file)
-
 > Upload files to server!
 
 ## API:
