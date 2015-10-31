@@ -81,11 +81,14 @@ module.exports = function ImageModel(we) {
               var originalFile =  we.db.models.image.getImagePath('original', fileName);
 
               var width = we.config.upload.image.styles[imageStyle].width;
-              var heigth = we.config.upload.image.styles[imageStyle].heigth;
+              var height = we.config.upload.image.styles[imageStyle].heigth;
 
               // resize and remove EXIF profile data
               gm(originalFile)
-              .resize(width, heigth)
+              // .background('#ffffff')
+              .resize(width, height)
+              .gravity('Center')
+              .extent(width, height)
               .noProfile()
               .write(path, function (err) {
                 if (err) return callback(err);
