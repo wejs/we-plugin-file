@@ -5,22 +5,13 @@
 > Upload files to server!
 
 ## API:
-TODO
-
-## Sails.js resources:
-
- - Files Controller
- - Images Controller
- - Files Model
- - Images Model
- - FileImage Service
 
 ## Avaible URLS:
-TODO
+
 
 #### NPM Info:
 [![NPM](https://nodei.co/npm/we-plugin-file.png?downloads=true&downloadRank=true&stars=true)](https://nodei.co/npm/we-plugin-file/)
 
-## Copyright and license
+## License
 
-Copyright 2013-2014 Alberto Souza <alberto.souza.dev@gmail.com> and contributors , under [the MIT license](LICENSE).
+MIT

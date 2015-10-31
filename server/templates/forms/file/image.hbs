@@ -1,16 +1,23 @@
-<div id="{{fieldId}}" class="form-group {{#if error}}has-error has-feedback{{/if}}">
+<div id="{{fieldId}}"
+     class="form-group {{#if error}}has-error has-feedback{{/if}}"
+     data-multiple="{{#if field.formFieldMultiple}}true{{else}}false{{/if}}"  >
+
   <label for="{{fieldId}}">{{t fieldName}} {{#ifCond field.allowNull false}}*{{/ifCond}}</label>
 
-  <button id="{{fieldId}}ImageBTNSelector" type="button" onclick="we.components.imageSelector.selectImageForField('#{{fieldId}}', '{{name}}');" class="btn btn-default"
-    {{#ifCond value 'null'}}{{else}}{{#if value}}style="display:none;"{{/if}}{{/ifCond}}
-  >{{t 'file.image.select.btn'}}</button>
+  <button id="{{fieldId}}ImageBTNSelector"
+          type="button"
+          onclick="we.components.imageSelector.selectImageForField('#{{fieldId}}', '{{name}}');"
+          class="btn btn-default"
+          {{#ifCond value 'null'}}{{else}}{{#if value}}style="display:none;"{{/if}}{{/ifCond}} >
+    {{t 'file.image.select.btn'}}
+  </button>
 
   <input name="{{name}}" type="hidden" value="null">
 
-  <table id="{{fieldId}}ImageTable" class="table table-bordered"
-    {{#ifCond value 'null'}}style="display:none;"{{/ifCond}}
-    {{#unless value}}style="display:none;"{{/unless}}
-  >
+  <table id="{{fieldId}}ImageTable"
+         class="table table-bordered"
+         {{#ifCond value 'null'}}style="display:none;"{{/ifCond}}
+         {{#unless value}}style="display:none;"{{/unless}}  >
     <thead><tr>
       <th>{{t 'Name'}}</th>
       <th>{{t 'thumbnail'}}</th>

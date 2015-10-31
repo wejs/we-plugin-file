@@ -209,11 +209,7 @@ module.exports = function ImageModel(we) {
           // set virtual getter
           cfgs.get = getFieldGetter(f, cfgs);
           // set form field html
-          if (cfgs.formFieldMultiple) {
-            cfgs.formFieldType = 'file/images';
-          } else {
-            cfgs.formFieldType = 'file/image';
-          }
+          cfgs.formFieldType = 'file/image';
           // set virtual fields for term fields if not exists
           models[modelName].definition[f] = cfgs;
         }

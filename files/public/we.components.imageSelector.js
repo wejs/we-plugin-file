@@ -1,5 +1,7 @@
 /**
- * We.js client side lib
+ * We.js image selector component client side lib
+ *
+ * Handle image field selector
  */
 
 (function (we, $) {
@@ -9,7 +11,6 @@ we.components.imageSelector = {
 
   selectImage: function(cb) {
     this.imageSelectedHandler = cb;
-
     this.modal.modal('show');
   },
   imageSelected: function(err, image) {
@@ -19,6 +20,12 @@ we.components.imageSelector = {
     this.imageSelectedHandler = null;
   },
   imageSelectedHandler: null,
+
+  /**
+   * Innitializer
+   *
+   * @param  {String} selector field selector
+   */
   init: function init(selector) {
     var self = this;
     this.modal = $(selector);
@@ -78,10 +85,13 @@ we.components.imageSelector = {
     });
   },
 
-  showFieldImageSelector: function(fieldSelector) {
-
-  },
-
+  /**
+   * Show selected image from data
+   *
+   * @param  {String} fieldSelector field selector ID
+   * @param  {String} name          Field name
+   * @param  {[Object} image         Image object
+   */
   showFieldImageData: function(fieldSelector, name, image) {
     var row = $(fieldSelector + 'ImageFieldTemplates tr').clone();
     row.find('td[data-image-name]').html(image.originalname);
@@ -90,11 +100,20 @@ we.components.imageSelector = {
       '<input name="'+name+'" type="hidden" value="'+image.id+'">'
     );
 
-    $(fieldSelector + 'ImageBTNSelector').hide();
+    if ($(fieldSelector).attr('data-multiple') !== 'true'){
+      $(fieldSelector + 'ImageBTNSelector').hide();
+    }
+
     $(fieldSelector + 'ImageTable tbody').append(row);
     $(fieldSelector + 'ImageTable').show();
   },
 
+  /**
+   * Remove image from selected images list
+   *
+   * @param  {Object} e
+   * @param  {String} selector field selector
+   */
   removeImage: function(e, selector) {
     var tbody = $(e).parent().parent().parent();
     $(e).parent().parent().remove();
@@ -120,6 +139,13 @@ we.components.imageSelector = {
     });
   },
 
+  /**
+   * Generate one image HTML
+   *
+   * @param  {Object} image
+   * @param  {String} style Image style, original, large, medium or thumbnail
+   * @return {Object}       Jquery HTML object
+   */
   renderImage: function(image, style) {
     var self = this;
     var img = document.createElement('img');
@@ -132,6 +158,11 @@ we.components.imageSelector = {
     return $(img);
   },
 
+  /**
+   * Ger images from image server
+   *
+   * @return {Object} jquery GET ajax promisse
+   */
   getImagesFromServer: function() {
     var cfgs = {
       url: this.host + '/api/v1/image',
