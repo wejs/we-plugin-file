@@ -8,7 +8,10 @@
           type="button"
           onclick="we.components.imageSelector.selectImageForField('#{{fieldId}}', '{{name}}');"
           class="btn btn-default"
-          {{#ifCond value 'null'}}{{else}}{{#if value}}style="display:none;"{{/if}}{{/ifCond}} >
+
+          {{#unless field.formFieldMultiple}}
+            {{#ifCond value 'null'}}{{else}}{{#if value}}style="display:none;"{{/if}}{{/ifCond}}
+          {{/unless}} >
     {{t 'file.image.select.btn'}}
   </button>
 

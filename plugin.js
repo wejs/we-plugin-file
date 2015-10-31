@@ -238,6 +238,15 @@ module.exports = function loadPlugin(projectPath, Plugin) {
     path: 'files/public/we.components.fileSelector.js'
   });
 
+  plugin.addJs('jquery.fancybox', {
+    type: 'plugin', weight: 15, pluginName: 'we-plugin-file',
+    path: 'files/public/fancyBox/source/jquery.fancybox.pack.js'
+  });
+
+  plugin.addCss('jquery.fancybox', {
+    type: 'plugin', weight: 15, pluginName: 'we-plugin-file',
+    path: 'files/public/fancyBox/source/jquery.fancybox.css'
+  });
 
   return plugin;
 };
