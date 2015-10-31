@@ -7,12 +7,10 @@
 we.components.fileSelector = {
   selectFile: function(cb) {
     this.fileSelectedHandler = cb;
-
     this.modal.modal('show');
   },
   fileSelected: function(err, file) {
     this.fileSelectedHandler(err, file);
-
     this.modal.modal('hide');
     this.fileSelectedHandler = null;
   },
@@ -75,10 +73,6 @@ we.components.fileSelector = {
     });
   },
 
-  showFieldFileSelector: function(fieldSelector) {
-
-  },
-
   showFieldFileData: function(fieldSelector, name, file) {
     var row = $(fieldSelector + 'FileFieldTemplates tr').clone();
     row.find('td[data-file-name]').html(
@@ -86,7 +80,10 @@ we.components.fileSelector = {
       '<input name="'+name+'" type="hidden" value="'+file.id+'">'
     );
 
-    $(fieldSelector + 'FileBTNSelector').hide();
+    if ($(fieldSelector).attr('data-multiple') !== 'true'){
+      $(fieldSelector + 'FileBTNSelector').hide();
+    }
+
     $(fieldSelector + 'FileTable tbody').append(row);
     $(fieldSelector + 'FileTable').show();
   },

@@ -93,11 +93,7 @@ module.exports = function FileModel(we) {
           // set virtual getter
           cfgs.get = getFieldGetter(f, cfgs);
           // set form field html
-          if (cfgs.formFieldMultiple) {
-            cfgs.formFieldType = 'file/files';
-          } else {
-            cfgs.formFieldType = 'file/file';
-          }
+          cfgs.formFieldType = 'file/file';
           // set virtual fields for term fields if not exists
           models[modelName].definition[f] = cfgs;
         }

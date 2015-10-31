@@ -8,7 +8,6 @@
           type="button"
           onclick="we.components.imageSelector.selectImageForField('#{{fieldId}}', '{{name}}');"
           class="btn btn-default"
-
           {{#unless field.formFieldMultiple}}
             {{#ifCond value 'null'}}{{else}}{{#if value}}style="display:none;"{{/if}}{{/ifCond}}
           {{/unless}} >
@@ -40,6 +39,7 @@
     </tbody>
   </table>
 
+  {{!-- each file template --}}
   <div id="{{fieldId}}ImageFieldTemplates" style="display:none;">
     <table><tr>
       <td data-image-name></td>
