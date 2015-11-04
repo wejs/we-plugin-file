@@ -248,5 +248,62 @@ module.exports = function loadPlugin(projectPath, Plugin) {
     path: 'files/public/fancyBox/source/jquery.fancybox.css'
   });
 
+  // - jquery.fileupload
+  //
+  plugin.addJs('jquery.iframe-transport', {
+    weight: 7, pluginName: 'we-plugin-file',
+    path: 'files/public/jquery.fileupload/js/jquery.iframe-transport.js'
+  });
+
+  plugin.addJs('jquery.fileupload', {
+    weight: 7, pluginName: 'we-plugin-file',
+    path: 'files/public/jquery.fileupload/js/jquery.fileupload.js'
+  });
+
+  plugin.addCss('jquery.fileupload', {
+    weight: 7, pluginName: 'we-plugin-file',
+    path: 'files/public/jquery.fileupload/css/jquery.fileupload.css'
+  });
+
+  plugin.addJs('jquery.fileupload-process', {
+    weight: 8, pluginName: 'we-plugin-file',
+    path: 'files/public/jquery.fileupload/js/jquery.fileupload-process.js'
+  });
+
+  plugin.addJs('jquery.fileupload-image', {
+    weight: 8, pluginName: 'we-plugin-file',
+    path: 'files/public/jquery.fileupload/js/jquery.fileupload-image.js'
+  });
+
+  plugin.addJs('jquery.fileupload-audio', {
+    weight: 8, pluginName: 'we-plugin-file',
+    path: 'files/public/jquery.fileupload/js/jquery.fileupload-audio.js'
+  });
+
+  plugin.addJs('jquery.fileupload-video', {
+    weight: 8, pluginName: 'we-plugin-file',
+    path: 'files/public/jquery.fileupload/js/jquery.fileupload-video.js'
+  });
+
+  plugin.addJs('jquery.fileupload-validate', {
+    weight: 8, pluginName: 'we-plugin-file',
+    path: 'files/public/jquery.fileupload/js/jquery.fileupload-validate.js'
+  });
+
+  plugin.addJs('jquery.fileupload-ui', {
+    weight: 8, pluginName: 'we-plugin-file',
+    path: 'files/public/jquery.fileupload/js/jquery.fileupload-ui.js'
+  });
+
+  plugin.addJs('jquery.fileupload-jquery-ui', {
+    weight: 8, pluginName: 'we-plugin-file',
+    path: 'files/public/jquery.fileupload/js/jquery.fileupload-jquery-ui.js'
+  });
+
+  plugin.addCss('jquery.fileupload-jquery-ui', {
+    weight: 8, pluginName: 'we-plugin-file',
+    path: 'files/public/jquery.fileupload/css/jquery.fileupload-ui.css'
+  });
+
   return plugin;
 };
