@@ -19,13 +19,9 @@ module.exports = function(we) {
 
     if(!image.urls[style]) style = 'original';
 
-    var attributes = [];
-    // pass helper attributes to link element
-    for (var attributeName in options.hash) {
-      attributes.push(attributeName + '="' + options.hash[attributeName] + '"');
-    }
+    var attributes = we.utils.helper.parseAttributes(options);
 
-    html += '<img src="'+image.urls[style]+'" '+attributes.join(' ')+' >';
+    html += '<img src="'+image.urls[style]+'" '+attributes+' >';
 
     return new we.hbs.SafeString(html);
   }
