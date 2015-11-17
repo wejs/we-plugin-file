@@ -100,34 +100,34 @@ module.exports = {
    * Upload file to upload dir and save metadata on database
    */
   create: function createOneImage(req, res) {
-    var we = req.getWe();
+    var we = req.we;
     // images in upload
     var files = req.files;
 
-    if (!files.image) return res.badRequest('file.create.image.required');
+    if (!files.image || !files.image[0]) return res.badRequest('file.create.image.required');
 
-    if (!we.utils._.isObject(files.image)) return res.badRequest('file.create.image.invalid');
+    if (!we.utils._.isObject(files.image[0])) return res.badRequest('file.create.image.invalid');
 
-    we.log.verbose('image:create: files.image to save:', files.image);
+    we.log.verbose('image:create: files.image to save:', files.image[0]);
 
     // get image size
-    gm(files.image.path).size(function (err, size) {
+    gm(files.image[0].path).size(function (err, size) {
       if (err) {
         we.log.error('image.create: Error on get image file size:', err, files.image);
         return res.serverError(err);
       }
 
-      files.image.width = size.width;
-      files.image.height = size.height;
-      files.image.mime = files.image.mimetype;
+      files.image[0].width = size.width;
+      files.image[0].height = size.height;
+      files.image[0].mime = files.image[0].mimetype;
 
-      if (req.isAuthenticated()) files.image.creatorId = req.user.id;
+      if (req.isAuthenticated()) files.image[0].creatorId = req.user.id;
 
-      res.locals.Model.create(files.image)
+      res.locals.Model.create(files.image[0])
       .then(function (record) {
         if (record) we.log.debug('New image record created:', record.get());
         return res.created(record);
-      });
+      }).catch(res.queryError);
     });
   },
 

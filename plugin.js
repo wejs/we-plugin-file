@@ -140,31 +140,32 @@ module.exports = function loadPlugin(projectPath, Plugin) {
       responseType  : 'json',
       permission    : 'upload_image',
       upload: {
-        // TODO change to temp dir
+        // destination folder used in multer({ dest: '' })
         dest: projectPath + '/files/uploads/images/original',
-        /**
-         * Rename file
-         * @param  {string} fieldname
-         * @param  {string} filename
-         * @return {string}           uuid
-         */
-        rename: function () {
-          return Date.now() + '_' + uuid.v1();
-        },
+        // limmit settings used in multer({ limits: '' })
         limits: {
           fieldNameSize: 150,
-          files: 1,
           fileSize: 10*1000000, // 10MB
           fieldSize: 20*1000000 // 20MB
         },
-        onFileUploadStart: function(file) {
-          // check if file is valid on upload start
+        // file filter function used in multer({ fileFilter: fn })
+        fileFilter: function fileFilter(req, file, cb) {
+          // The function should call `cb` with a boolean
+          // to indicate if the file should be accepted
           if (imageMimeTypes.indexOf(file.mimetype) < 0) {
-            console.log('Image:onFileUploadStart: Invalid file type for file:', file);
+            req.we.log.warn('Image:onFileUploadStart: Invalid file type for file:', file);
             // cancel upload on invalid type
-            return false;
+            return cb(null, false);
           }
-        }
+
+          // To accept the file pass `true`, like so:
+          cb(null, true)
+        },
+
+        // only accept one imagem in image param
+        fields: [{
+          name: 'image', maxCount: 1
+        }]
       }
     },
     'get /api/v1/file/:id([0-9]+)': {
@@ -189,24 +190,17 @@ module.exports = function loadPlugin(projectPath, Plugin) {
       permission    : 'upload_file',
       upload: {
         dest: projectPath + '/files/uploads/files',
-        /**
-         * Rename file
-         * @param  {string} fieldname
-         * @param  {string} filename
-         * @return {string}           uuid
-         */
-        rename: function () {
-          return Date.now() + '_' + uuid.v1();
-        },
+
         limits: {
           fieldNameSize: 150,
           files: 1,
           fileSize: 10*1000000, // 10MB
           fieldSize: 20*1000000 // 20MB
         },
-        // onFileUploadStart: function(file, x) {
-        //   console.log('>>', file, x, this);
-        // }
+        // only accept one file in file param
+        fields: [{
+          name: 'file', maxCount: 1
+        }]
       }
     },
     // user image routes

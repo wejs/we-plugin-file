@@ -2,9 +2,8 @@ var assert = require('assert');
 var request = require('supertest');
 var helpers = require('we-test-tools').helpers;
 var stubs = require('we-test-tools').stubs;
-var _ = require('lodash');
 var http;
-var we;
+var we, _;
 var db;
 
 describe('imageFeature', function () {
@@ -13,13 +12,14 @@ describe('imageFeature', function () {
   before(function (done) {
     http = helpers.getHttp();
     we = helpers.getWe();
+    _ = we.utils._;
     // upload one stub image:
     request(http)
     .post('/api/v1/image')
     .attach('image', stubs.getImageFilePath())
     .end(function (err, res) {
       if(err) throw err;
-      salvedImage = res.body.image[0];
+      salvedImage = res.body.image;
       done(err);
     });
   });
@@ -54,10 +54,9 @@ describe('imageFeature', function () {
       .end(function (err, res) {
         if(err) throw err;
         assert(res.body.image);
-        assert(res.body.image[0].mime);
-        assert(res.body.image[0].width);
-        assert(res.body.image[0].height);
-
+        assert(res.body.image.mime);
+        assert(res.body.image.width);
+        assert(res.body.image.height);
         done();
       });
     });
@@ -77,8 +76,8 @@ describe('imageFeature', function () {
               done();
             });
           })
-        });
-      });
+        }).catch(done);
+      }).catch(done);
     });
   });
 
@@ -88,7 +87,6 @@ describe('imageFeature', function () {
       .get('/api/v1/image/' + salvedImage.name)
       .attach('image', stubs.getImageFilePath())
       .end(function (err, res) {
-
         assert.equal(200, res.status);
         assert.equal(res.type, salvedImage.mime);
         assert(res.body);

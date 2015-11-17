@@ -2,7 +2,6 @@ var projectPath = process.cwd();
 var deleteDir = require('rimraf');
 var testTools = require('we-test-tools');
 var path = require('path');
-var async = require('async');
 var we;
 
 before(function(callback) {
@@ -46,7 +45,7 @@ after(function (callback) {
     // projectPath + '/files/wejsdoc'
   ];
 
-  async.each(tempFolders, function(folder, next){
+  we.utils.async.each(tempFolders, function(folder, next){
     deleteDir( folder, next);
   }, function(err) {
     if (err) throw new Error(err);

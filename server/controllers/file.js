@@ -1,23 +1,22 @@
 module.exports = {
   /**
-   * Upload file to upload dir and save metadata on database
+   * Upload one file to upload dir and save metadata on database
    */
   create: function createOneImage(req, res) {
-    var we = req.getWe();
-    var _ = we.utils._;
+    var we = req.we;
     // files in upload
     var files = req.files;
 
-    if (!files.file) return res.badRequest('file.create.file.required');
+    if (!files.file && files.file[0]) return res.badRequest('file.create.file.required');
 
-    if (!_.isObject(files.file)) return res.badRequest('file.create.file.invalid');
+    if (!we.utils._.isObject(files.file[0])) return res.badRequest('file.create.file.invalid');
 
-    we.log.verbose('file:create: files.file to save:', files.file);
+    we.log.verbose('file:create: files.file to save:', files.file[0]);
 
-    files.file.mime = files.file.mimetype;
-    if (req.isAuthenticated()) files.file.creatorId = req.user.id;
+    files.file[0].mime = files.file[0].mimetype;
+    if (req.isAuthenticated()) files.file[0].creatorId = req.user.id;
 
-    res.locals.Model.create(files.file)
+    res.locals.Model.create(files.file[0])
     .then(function (record) {
       if (record) we.log.debug('New file record created:', record.get());
       return res.created(record);
