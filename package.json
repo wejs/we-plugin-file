@@ -3,16 +3,15 @@
   "description": "We.js file plugin",
   "version": "0.3.18",
   "dependencies": {
-    "gm": "^1.16.0",
+    "gm": "^1.21.1",
     "mime": "^1.2.11",
     "mkdirp": "^0.5.1",
-    "mv": "^2.0.3",
-    "node-uuid": "^1.4.1",
-    "string": "^2.1.0"
+    "mv": "^2.1.1",
+    "node-uuid": "^1.4.7",
+    "string": "^3.3.1"
   },
   "main": "lib/index.js",
   "scripts": {
-    "lint": "./node_modules/.bin/jshint .",
     "test": "NODE_ENV=test LOG_LV=info ./node_modules/.bin/mocha test/bootstrap.js test/**/*.test.js -b ",
     "prepublish": "npm prune"
   },
@@ -22,18 +21,16 @@
   "author": "Alberto Souza <alberto.souza.dev@gmail.com>",
   "license": "ISC",
   "devDependencies": {
-    "fs-extra": "^0.18.2",
-    "istanbul": "^0.3.14",
-    "jscs": "^1.4.5",
-    "jshint": "^2.8.0",
-    "mocha": "^2.2.5",
-    "rimraf": "^2.3.3",
-    "sinon": "^1.14.1",
-    "supertest": "^1.0.1",
-    "we-core": "wejs/we-core",
-    "we-test-tools": "wejs/we-test-tools",
-    "we-theme-admin-default": "^0.3.1",
-    "we-theme-site-wejs": "^0.3.10"
+    "fs-extra": "^0.26.2",
+    "istanbul": "^0.4.0",
+    "mocha": "^2.3.4",
+    "rimraf": "^2.4.3",
+    "sinon": "^1.17.2",
+    "supertest": "^1.1.0",
+    "we-core": "^0.3.104",
+    "we-test-tools": "^0.3.10",
+    "we-theme-admin-default": "^0.3.10",
+    "we-theme-site-wejs": "^0.3.30"
   },
   "repository": {
     "type": "git",
