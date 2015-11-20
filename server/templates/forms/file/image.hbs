@@ -13,7 +13,7 @@
           {{/unless}} >
     {{t 'file.image.select.btn'}}
   </button>
-
+  {{!-- Magic field to run the image field updater --}}
   <input name="{{name}}" type="hidden" value="null">
 
   <table id="{{fieldId}}ImageTable"
@@ -28,8 +28,8 @@
     <tbody>
       {{#each value}}
         <tr>
-          <td data-image-name>{{originalname}}</td>
-          <td data-image-thumbnail><img src="{{urls.thumbnail}}"></td>
+          <td data-image-name>{{originalname}} : {{description}}</td>
+          <td data-image-thumbnail><img alt="{{description}}" src="{{urls.thumbnail}}"></td>
           <td>
             <button onclick="we.components.imageSelector.removeImage(this, '#{{../fieldId}}')" type="button" class="btn btn-danger">{{t 'image.remove'}}</button>
             <input name="{{../name}}" type="hidden" value="{{id}}">

@@ -21,7 +21,7 @@ module.exports = function(we) {
 
     var attributes = we.utils.helper.parseAttributes(options);
 
-    html += '<img src="'+image.urls[style]+'" '+attributes+' >';
+    html += '<img alt="'+image.description+'" src="'+image.urls[style]+'" '+attributes+' >';
 
     return new we.hbs.SafeString(html);
   }

@@ -119,6 +119,8 @@ module.exports = {
 
       files.image[0].width = size.width;
       files.image[0].height = size.height;
+      files.image[0].description = req.body.description;
+      files.image[0].label = req.body.label;
       files.image[0].mime = files.image[0].mimetype;
 
       if (req.isAuthenticated()) files.image[0].creatorId = req.user.id;

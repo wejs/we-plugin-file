@@ -26,7 +26,7 @@ module.exports = function(we) {
     }
 
     html += '<a href="'+image.urls.large+'" title="'+image.originalname+'"  '+attributes.join(' ')+' >';
-    html +=   '<img src="'+image.urls[style]+'" alt="'+image.originalname+'" >';
+    html +=   '<img alt="'+image.description+'" src="'+image.urls[style]+'" alt="'+image.originalname+'" >';
     html += '</a>';
 
     return new we.hbs.SafeString(html);

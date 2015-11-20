@@ -23,14 +23,30 @@
               <br>
 
               {{!-- File uploader --}}
-              <div role="tabpanel" class="tab-pane active" id="imageUploadTab">.
-                <!-- The fileinput-button span is used to style the file input field as button -->
-                <span class="btn btn-success fileinput-button">
-                  <i class="glyphicon glyphicon-plus"></i>
-                  <span>{{t 'image.upload.selector.btn'}}</span>
-                  <!-- The file input field used as target for the file upload widget -->
-                  <input class="fileupload" type="file" data-url="/api/v1/image" name="image">
-                </span>
+              <div role="tabpanel" class="tab-pane active" id="imageUploadTab">
+                <form id="weImageUploadForm" action="/api/v1/image" method="POST" onsubmit="return we.components.imageSelector.saveFile();">
+                  <div class="upload-step-1">
+                    <!-- The fileinput-button span is used to style the file input field as button -->
+                    <span class="btn btn-success fileinput-button">
+                      <i class="glyphicon glyphicon-plus"></i>
+                      <span>{{t 'image.upload.selector.btn'}}</span>
+                      <!-- The file input field used as target for the file upload widget -->
+                      <input class="fileupload image-upload=field" type="file" data-url="/api/v1/image" name="image">
+                    </span>
+                  </div>
+                  <div class="upload-step-2" style="display:none">
+                    <div id="upload-image-preview-wrapper"></div>
+                    <div class="form-group">
+                      <span for="weImageUploadDescription">{{t 'form-image-description'}}*</span>
+                      <textarea  id="weImageUploadDescription" required="required" name="description" class="form-control"></textarea>
+                      <p class="text-helper">{{t 'form-helper-image-description'}}</p>
+                    </div>
+                    <div class="form-group">
+                      <button class="btn btn-primary">{{t 'save'}}</button>
+                      <button type="button" onclick="we.components.imageSelector.cancelUpload();" class="btn btn-default">{{t 'cancel'}}</button>
+                    </div>
+                  </div>
+                </form>
                 <br>
                 <br>
                 <!-- The global progress bar -->
@@ -42,9 +58,7 @@
               {{!-- File browser --}}
               <div role="tabpanel" class="tab-pane" id="imageFileListTab">
                 <br>
-
-                <div id="weImageBrowser" class="we-image-browser">111</div>
-
+                <div id="weImageBrowser" class="we-image-browser"></div>
               </div>
             </div>
           </div>

@@ -20,6 +20,7 @@ we.components.imageSelector = {
     this.imageSelectedHandler = null;
   },
   imageSelectedHandler: null,
+  fileUploadData: null,
 
   /**
    * Innitializer
@@ -38,17 +39,23 @@ we.components.imageSelector = {
     this.uploader.fileupload({
       dataType: 'json',
       sequentialUploads: true,
+      limitMultiFileUploads: 1,
       add: function (e, data) {
-        data.submit();
-        self.progress.show();
+        self.displayThumbnail(data.files[0]);
+        self.fileUploadData = data;
+        self.goTostep2();
       },
       done: function (e, data) {
+        self.fileUploadData = null;
+
         if (self.imageSelectedHandler) {
           self.imageSelectedHandler(null, data.result.image);
           self.modal.modal('hide');
         } else {
           console.log('TODO show done in image selector modal');
         }
+
+        $('#upload-image-preview-wrapper').html('');
         we.imageSelectedHandler = null;
         self.progress.hide();
         self.progressBar.css( 'width', '0%' );
@@ -75,8 +82,46 @@ we.components.imageSelector = {
           '<span aria-hidden="true">×</span></button>'+
        message + ' </div>');
     }
-
   },
+
+  goTostep1: function step1() {
+    $('#weImageUploadForm .upload-step-1').show();
+    $('#weImageUploadForm .upload-step-2').hide();
+  },
+  goTostep2: function step2() {
+    $('#weImageUploadForm .upload-step-1').hide();
+    $('#weImageUploadForm .upload-step-2').show();
+  },
+  saveFile: function saveFile() {
+    if ($('#weImageUploadDescription').val())
+      this.fileUploadData.submit();
+    return false;
+  },
+  cancelUpload: function cancelUpload() {
+    this.fileUploadData = null;
+    $('#upload-image-preview-wrapper').html('');
+    this.modal.modal('hide');
+    this.progress.hide();
+    this.goTostep1();
+  },
+
+  displayThumbnail: function displayThumbnail(file) {
+    var self = this;
+    var reader = new FileReader();
+    reader.onload = function (e) {
+      var $newImageThumbnail = self.makeElement('img',{ class: 'image-frame', width: '150px' ,src: e.target.result});
+      $('#upload-image-preview-wrapper').append($newImageThumbnail);
+    }
+    reader.readAsDataURL(file);
+  },
+  makeElement: function makeElement(element, options) {
+    var $elem = document.createElement(element);
+    $.each(options, function (key, value) {
+        $elem.setAttribute(key, value);
+    });
+    return $elem;
+  },
+
   selectImageForField: function(selector, name) {
     var self = this;
     this.selectImage(function (err, image) {
@@ -94,9 +139,9 @@ we.components.imageSelector = {
    */
   showFieldImageData: function(fieldSelector, name, image) {
     var row = $(fieldSelector + 'ImageFieldTemplates tr').clone();
-    row.find('td[data-image-name]').html(image.originalname);
+    row.find('td[data-image-name]').html(image.originalname + ' : ' +image.description);
     row.find('td[data-image-thumbnail]').html(
-      '<img src="'+ image.urls.thumbnail +'">' +
+      '<img alt="'+image.description+'" src="'+ image.urls.thumbnail +'">' +
       '<input name="'+name+'" type="hidden" value="'+image.id+'">'
     );
 
