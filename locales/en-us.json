@@ -2,5 +2,7 @@
   "file.file.select.btn": "Select files",
   "file.selector": "Select files",
   "file.upload.selector.btn": "Send files to server",
-  "file.uploader.title": "Send file"
+  "file.uploader.title": "Send file",
+  "form-helper-image-description": "Add a description relevant, concise and represent the image content or meaning that is relevant to the context",
+  "form-image-description": "Description"
 }
