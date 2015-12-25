@@ -25,7 +25,7 @@ module.exports = function(we) {
       attributes.push(attributeName + '="' + options.hash[attributeName] + '"');
     }
 
-    html += '<a href="'+image.urls.large+'" title="'+image.originalname+'"  '+attributes.join(' ')+' >';
+    html += '<a href="'+image.urls.original+'" title="'+image.originalname+'"  '+attributes.join(' ')+' >';
     html +=   '<img alt="'+image.description+'" src="'+image.urls[style]+'" alt="'+image.originalname+'" >';
     html += '</a>';
 
