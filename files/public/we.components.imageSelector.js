@@ -56,6 +56,7 @@ we.components.imageSelector = {
         }
 
         $('#upload-image-preview-wrapper').html('');
+        $('#weImageUploadDescription').val('');
         we.imageSelectedHandler = null;
         self.progress.hide();
         self.progressBar.css( 'width', '0%' );
@@ -100,6 +101,7 @@ we.components.imageSelector = {
   cancelUpload: function cancelUpload() {
     this.fileUploadData = null;
     $('#upload-image-preview-wrapper').html('');
+    $('#weImageUploadDescription').val('');
     this.modal.modal('hide');
     this.progress.hide();
     this.goTostep1();
