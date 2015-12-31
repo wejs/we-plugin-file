@@ -11,9 +11,16 @@ module.exports = function(we) {
    * @param  {String} format
    * @return {String}
    */
-  return function render(image, style) {
+  return function render(imageObj, style) {
     var options = arguments[arguments.length-1];
     var html = '';
+    var image;
+
+    if (we.utils._.isArray(imageObj)) {
+      image = imageObj[0];
+    } else {
+      image = imageObj;
+    }
 
     if (!image || !image.urls) return html;
 
