@@ -19,7 +19,7 @@ module.exports = function(we) {
       return we.log.warn('ID is required for helper we-fancybox-galery');
     }
 
-    var style =  options.hash.style || 'original';
+    var style = options.hash.style || 'original';
 
     var attributes = [];
     // pass helper attributes to link element

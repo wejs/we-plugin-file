@@ -60,6 +60,8 @@ we.components.imageSelector = {
         we.imageSelectedHandler = null;
         self.progress.hide();
         self.progressBar.css( 'width', '0%' );
+
+        self.goTostep1();
       },
       progressall: function (e, data) {
         var progress = parseInt(data.loaded / data.total * 100, 10);
@@ -96,6 +98,8 @@ we.components.imageSelector = {
   saveFile: function saveFile() {
     if ($('#weImageUploadDescription').val())
       this.fileUploadData.submit();
+
+
     return false;
   },
   cancelUpload: function cancelUpload() {
@@ -147,7 +151,8 @@ we.components.imageSelector = {
       '<input name="'+name+'" type="hidden" value="'+image.id+'">'
     );
 
-    if ($(fieldSelector).attr('data-multiple') !== 'true'){
+    if ($(fieldSelector).attr('data-multiple') !== 'true') {
+      console.log('>>', fieldSelector + 'ImageBTNSelector')
       $(fieldSelector + 'ImageBTNSelector').hide();
     }
 
