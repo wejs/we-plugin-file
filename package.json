@@ -10,7 +10,7 @@
     "node-uuid": "^1.4.7",
     "string": "^3.3.1"
   },
-  "main": "lib/index.js",
+  "main": "plugin.js",
   "scripts": {
     "test": "NODE_ENV=test LOG_LV=info ./node_modules/.bin/mocha test/bootstrap.js test/**/*.test.js -b ",
     "prepublish": "npm prune"

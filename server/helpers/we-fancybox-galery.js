@@ -28,6 +28,7 @@ module.exports = function(we) {
     }
 
     html += '<div id="'+options.hash.id+'" class="fancybox-galery">';
+
       for (var i = options.hash.images.length - 1; i >= 0; i--) {
         html += we.hbs.handlebars.helpers['we-image-fancybox']
         .bind()(options.hash.images[i], style, { hash: {
