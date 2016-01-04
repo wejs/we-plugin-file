@@ -254,7 +254,7 @@ module.exports = function ImageModel(we) {
     we.file.image.afterFind = function afterFind(r, opts, done) {
       var Model = this;
       if ( _.isArray(r) ) {
-        async.eachSeries(r, function (r1, next) {
+        async.each(r, function (r1, next) {
           // we.db.models.imageassoc
           we.file.image.afterFindRecord.bind(Model)(r1, opts, next);
         }, done);
