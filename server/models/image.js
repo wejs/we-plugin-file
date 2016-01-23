@@ -87,8 +87,6 @@ module.exports = function ImageModel(we) {
               gm(originalFile)
               // .background('#ffffff')
               .resize(width, height)
-              .gravity('Center')
-              .extent(width, height)
               .noProfile()
               .write(path, function (err) {
                 if (err) return callback(err);
