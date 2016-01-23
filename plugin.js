@@ -1,8 +1,6 @@
 /**
  * We.js we-pluginfile plugin settings
  */
-var uuid = require('node-uuid');
-
 module.exports = function loadPlugin(projectPath, Plugin) {
   var plugin = new Plugin(__dirname);
 
