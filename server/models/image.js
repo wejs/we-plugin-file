@@ -85,9 +85,9 @@ module.exports = function ImageModel(we) {
 
               // resize and remove EXIF profile data
               gm(originalFile)
-              // .background('#ffffff')
-              .resize(width, height)
-              .noProfile()
+              .resize(width, height, '^')
+              .gravity('Center')
+              .crop(width, height)
               .write(path, function (err) {
                 if (err) return callback(err);
                 fs.readFile(path, function (err, contents) {
