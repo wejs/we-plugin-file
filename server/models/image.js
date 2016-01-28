@@ -69,6 +69,13 @@ module.exports = function ImageModel(we) {
           return we.config.upload.image.uploadPath + '/'+ imageStyle +'/' + fileName;
         },
 
+        /**
+         * Get original file or resize
+         *
+         * @param  {String}   fileName
+         * @param  {String}   imageStyle
+         * @param  {Function} callback
+         */
         getFileOrResize: function getFileOrResize(fileName, imageStyle, callback) {
           var path = we.db.models.image.getImagePath(imageStyle, fileName);
 
@@ -83,7 +90,7 @@ module.exports = function ImageModel(we) {
               var width = we.config.upload.image.styles[imageStyle].width;
               var height = we.config.upload.image.styles[imageStyle].heigth;
 
-              // resize and remove EXIF profile data
+              // resize and crop
               gm(originalFile)
               .resize(width, height, '^')
               .gravity('Center')
@@ -94,7 +101,6 @@ module.exports = function ImageModel(we) {
                   callback(null, contents);
                 });
               });
-
             } else {
               callback(null, contents);
             }
