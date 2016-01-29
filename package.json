@@ -35,14 +35,5 @@
   "repository": {
     "type": "git",
     "url": "git@github.com:wejs/we-plugin-file.git"
-  },
-  "files": [
-    "LICENSE",
-    "README.md",
-    "plugin.js",
-    "server/",
-    "client/",
-    "lib/",
-    "files/public/"
-  ]
+  }
 }
