@@ -48,6 +48,11 @@ module.exports = function loadPlugin(projectPath, Plugin) {
       'find_user_image': {
         'title': 'Find user images',
         'description': ' '
+      },
+
+      'find_all_system_images': {
+        'title': 'Find all system images',
+        'description': ' '
       }
     },
     upload: {

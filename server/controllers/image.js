@@ -8,6 +8,14 @@ var gm = require('gm');
 
 module.exports = {
   find: function findAll(req, res) {
+    if (req.we.acl.canStatic('find_all_system_images', req.userRoleNames) ) {
+      // show all
+    } else if (req.isAuthenticated()) {
+      res.locals.query.creatorId = req.user.id
+    } else {
+      return res.forbidden();
+    }
+
     return res.locals.Model.findAndCountAll(res.locals.query)
     .then(function (record) {
       res.locals.metadata.count = record.count;
