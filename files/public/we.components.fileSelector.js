@@ -15,7 +15,7 @@ we.components.fileSelector = {
     }.bind(this));
   },
 
-  getFormModalContentFromServer: function(cb) {
+  loadFormModalContentFromServer: function(cb) {
     var self = this;
 
     if (self.formModalContentCache) return cb(null, self.formModalContentCache);
