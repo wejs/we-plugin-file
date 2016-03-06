@@ -21,16 +21,16 @@
   "author": "Alberto Souza <alberto.souza.dev@gmail.com>",
   "license": "ISC",
   "devDependencies": {
-    "fs-extra": "^0.26.2",
+    "fs-extra": "^0.26.5",
     "istanbul": "^0.4.0",
     "mocha": "^2.3.4",
-    "rimraf": "^2.4.3",
+    "rimraf": "^2.5.2",
     "sinon": "^1.17.2",
     "supertest": "^1.1.0",
     "we-core": "^0.3.104",
     "we-test-tools": "^0.3.10",
-    "we-theme-admin-default": "^0.3.10",
-    "we-theme-site-wejs": "^0.3.30"
+    "we-theme-admin-default": "^1.0.0",
+    "we-theme-site-wejs": "^0.3.31"
   },
   "repository": {
     "type": "git",
