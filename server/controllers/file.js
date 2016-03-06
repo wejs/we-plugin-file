@@ -41,6 +41,13 @@ module.exports = {
       var filePath = file.getFilePath();
       res.sendFile(filePath);
     }).catch(res.queryError);
+  },
+
+
+  getFormModalContent: function getFormModalContent(req, res) {
+    res.send(
+      req.we.view.renderTemplate('form-'+req.params.type+'-modal-content', res.locals.theme, res.locals)
+    );
   }
 
 };

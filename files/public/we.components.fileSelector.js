@@ -5,9 +5,31 @@
 (function (we) {
 
 we.components.fileSelector = {
+  formModalContentIsLoad: true,
+
   selectFile: function(cb) {
     this.fileSelectedHandler = cb;
-    this.modal.modal('show');
+
+    this.loadFormModalContentFromServer(function() {
+      this.modal.modal('show');
+    }.bind(this));
+  },
+
+  getFormModalContentFromServer: function(cb) {
+    var self = this;
+
+    if (self.formModalContentCache) return cb(null, self.formModalContentCache);
+
+    $.ajax({
+      url: '/api/v1/file/get-form-modal-content'
+    }).then(function (html) {
+      self.formModalContentCache = html;
+
+      $('body').append(html);
+      we.components.fileSelector.init('#fileSelectorFormModal');
+
+      cb(null, self.formModalContentCache);
+    });
   },
   fileSelected: function(err, file) {
     this.fileSelectedHandler(err, file);

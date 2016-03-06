@@ -8,10 +8,17 @@
 
 we.components.imageSelector = {
   host: '',
+  imageSelectedHandler: null,
+  fileUploadData: null,
+
+  formModalContentIsLoad: false,
 
   selectImage: function(cb) {
     this.imageSelectedHandler = cb;
-    this.modal.modal('show');
+
+    this.loadFormModalContentFromServer(function() {
+      this.modal.modal('show');
+    }.bind(this));
   },
   imageSelected: function(err, image) {
     this.imageSelectedHandler(err, image);
@@ -19,8 +26,22 @@ we.components.imageSelector = {
     this.modal.modal('hide');
     this.imageSelectedHandler = null;
   },
-  imageSelectedHandler: null,
-  fileUploadData: null,
+  loadFormModalContentFromServer: function(cb) {
+    var self = this;
+
+    if (self.formModalContentCache) return cb(null);
+
+    $.ajax({
+      url: '/api/v1/image/get-form-modal-content'
+    }).then(function (html) {
+      self.formModalContentIsLoad = true;
+
+      $('body').append(html);
+      we.components.imageSelector.init('#imageSelectorFormModal');
+
+      cb(null);
+    });
+  },
 
   /**
    * Innitializer

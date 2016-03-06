@@ -16,7 +16,6 @@ module.exports = function loadPlugin(projectPath, Plugin) {
 
   // set plugin configs
   plugin.setConfigs({
-    clientComponentTemplates: { 'components-file': true },
     permissions: {
       'find_image': {
         'title': 'Find image',
@@ -218,6 +217,14 @@ module.exports = function loadPlugin(projectPath, Plugin) {
           }
         }
       }
+    },
+
+    'get /api/v1/:type(file|image)/get-form-modal-content': {
+      controller    : 'file',
+      action        : 'getFormModalContent',
+      model         : 'file',
+      responseType  : 'modal',
+      permission    : true
     }
   });
 

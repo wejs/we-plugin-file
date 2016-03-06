@@ -4,6 +4,8 @@
 
   <label for="{{fieldId}}">{{t fieldName}} {{#ifCond field.allowNull false}}*{{/ifCond}}</label>
 
+  <we-image-selector-btn >{{t 'file.image.select.btn'}}</we-image-selector-btn>
+
   <button id="{{fieldId}}ImageBTNSelector"
           type="button"
           onclick="we.components.imageSelector.selectImageForField('#{{fieldId}}', '{{name}}');"
