@@ -76,10 +76,8 @@ module.exports = {
 
         stream.pipe(res);
 
-        var had_error = false;
         stream.on('error', function (err) {
           we.log.error('image:findOne: error in send file', err);
-          had_error = true;
         });
       })
     });
