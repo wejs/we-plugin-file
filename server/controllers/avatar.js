@@ -29,22 +29,30 @@ module.exports = {
     we.db.models.user.findById(id)
     .then(function (user) {
       if (user && user.avatar && user.avatar[0]) {
+        // if user have avatar
         var image = user.avatar[0];
-        we.db.models.image.getFileOrResize(image.name, style, function (err, contents) {
+
+        we.db.models.image.getFileStreamOrResize(image.name, style, function (err, stream) {
           if(err) {
             we.log.error('Error on get avatar: ', err);
             return res.serverError();
           }
-          if (!contents) return res.notFound();
+          if (!stream) return res.notFound();
 
           if (image.mime) {
             res.contentType(image.mime);
           } else {
             res.contentType('image/png');
           }
-          res.send(contents);
+
+          stream.pipe(res);
+
+          stream.on('error', function (err) {
+            we.log.error('image:findOne: error in send file', err);
+          });
         });
       } else {
+        // else send the default
         fs.readFile(defaultAvatarPath, function (err, contents) {
           if (err) return res.serverError(err);
           res.contentType('image/png');

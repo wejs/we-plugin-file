@@ -70,41 +70,51 @@ module.exports = function ImageModel(we) {
         },
 
         /**
-         * Get original file or resize
+         * Get file stream of resize
          *
          * @param  {String}   fileName
          * @param  {String}   imageStyle
          * @param  {Function} callback
          */
-        getFileOrResize: function getFileOrResize(fileName, imageStyle, callback) {
+        getFileStreamOrResize: function getFileStreamOrResize(fileName, imageStyle, callback) {
           var path = we.db.models.image.getImagePath(imageStyle, fileName);
-
-          fs.readFile(path, function (err, contents) {
+          // check if file exists with fs.stat
+          fs.stat(path, function afterCheckIfFileExists(err) {
             if (err) {
               if (err.code !== 'ENOENT' || imageStyle === 'original' ) {
                 return callback(err);
               }
-
-              var originalFile =  we.db.models.image.getImagePath('original', fileName);
-
-              var width = we.config.upload.image.styles[imageStyle].width;
-              var height = we.config.upload.image.styles[imageStyle].heigth;
-
-              // resize and crop
-              gm(originalFile)
-              .resize(width, height, '^')
-              .gravity('Center')
-              .crop(width, height)
-              .write(path, function (err) {
+              we.db.models.image.resizeImage(fileName, imageStyle, function afterResizeImage(err){
                 if (err) return callback(err);
-                fs.readFile(path, function (err, contents) {
-                  callback(null, contents);
-                });
+                // fs.readFile(path, function (err, contents) {
+                  callback(null, fs.ReadStream(path));
+                // });
               });
             } else {
-              callback(null, contents);
+              callback(null, fs.ReadStream(path));
             }
           });
+        },
+        /**
+         * Resize one image to fit image style size
+         *
+         * @param  {String}   fileName
+         * @param  {String}   imageStyle
+         * @param  {Function} cb         callback
+         */
+        resizeImage: function resizeImage(fileName, imageStyle, cb) {
+          var originalFile =  we.db.models.image.getImagePath('original', fileName);
+          var newImagePath = we.db.models.image.getImagePath(imageStyle, fileName);
+
+          var width = we.config.upload.image.styles[imageStyle].width;
+          var height = we.config.upload.image.styles[imageStyle].heigth;
+
+          // resize, center and crop to fit size
+          gm(originalFile)
+          .resize(width, height, '^')
+          .gravity('Center')
+          .crop(width, height)
+          .write(newImagePath, cb);
         },
 
         /**

@@ -55,13 +55,13 @@ module.exports = {
 
       we.log.silly('image:findOne: image found:', image.get());
 
-      we.db.models.image.getFileOrResize(fileName, imageStyle, function (err, contents) {
+      we.db.models.image.getFileStreamOrResize(fileName, imageStyle, function (err, stream) {
         if (err) {
-          we.log.error('Error on getFileOrResize:', fileName, err);
+          we.log.error('Error on getFileStreamOrResize:', fileName, err);
           return res.serverError(err);
         }
 
-        if (!contents) return res.notFound();
+        if (!stream) return res.notFound();
 
         if (image.mime) {
           res.contentType(image.mime);
@@ -74,7 +74,13 @@ module.exports = {
           res.setHeader('Cache-Control', 'public, max-age='+we.config.cache.maxage);
         res.setHeader('Last-Modified', (new Date(image.updatedAt)).toUTCString());
 
-        return res.send(contents);
+        stream.pipe(res);
+
+        var had_error = false;
+        stream.on('error', function (err) {
+          we.log.error('image:findOne: error in send file', err);
+          had_error = true;
+        });
       })
     });
   },
