@@ -5,6 +5,22 @@
  */
 
 (function (we, $) {
+if (!we.cache) we.cache = {};
+
+we.cache.images = {};
+
+we.cache.findImage = function findImage(id) {
+  if (we.cache.images[id]) return we.cache.images[id];
+
+  we.cache.images[id] = $.ajax({
+    method: 'get',
+    url: '/api/v1/image/'+id+'/data',
+    dataType: 'json',
+    headers: { Accept : 'application/json' }
+  });
+
+  return we.cache.images[id];
+};
 
 we.components.imageSelector = {
   host: '',
@@ -249,4 +265,57 @@ we.components.imageSelector = {
   }
 }
 
+
 })(window.we, window.jQuery);
+
+window.addEventListener('WebComponentsReady', function() {
+  var we = window.we;
+
+  // -- Image component
+  // usage: <we-image data-id="{{id}}" data-style="thumbnail"></we-image>
+  var WeImagePrototype = Object.create(HTMLElement.prototype);
+  WeImagePrototype.createdCallback = function() {
+    var self = this;
+
+    var id = this.dataset.id;
+    var style = this.dataset.style || 'original';
+
+    if (!id) return console.warn('data-id is required for we-image');
+
+    we.cache.findImage(id).then(function (result) {
+      var img = document.createElement('img');
+      img.src = result.image.urls[style];
+
+      if (result.image.description)
+        img.alt = result.image.description;
+
+      self.appendChild(img);
+    });
+  };
+  document.registerElement('we-image', {
+    prototype: WeImagePrototype
+  });
+
+  /**
+   *  -- Image description component
+   *  usage: <we-image-description data-id="{{id}}"></we-image-description>
+   */
+  var WeImageDescriptionPrototype = Object.create(HTMLElement.prototype);
+  WeImageDescriptionPrototype.createdCallback = function() {
+    var self = this;
+
+    var id = this.dataset.id;
+    if (!id) return console.warn('data-id is required for we-image-description');
+
+    we.cache.findImage(id).then(function (result) {
+      self.textContent = result.image.originalname;
+
+      if (result.image.description) {
+        self.textContent += ': ' + result.image.description;
+      }
+    });
+  };
+  document.registerElement('we-image-description', {
+    prototype: WeImageDescriptionPrototype
+  });
+});

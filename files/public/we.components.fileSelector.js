@@ -4,6 +4,21 @@
 
 (function (we) {
 
+if (!we.cache) we.cache = {};
+we.cache.files = {};
+we.cache.findFile = function findFile(id) {
+  if (we.cache.files[id]) return we.cache.files[id];
+
+  we.cache.files[id] = $.ajax({
+    method: 'get',
+    url: '/api/v1/file/'+id,
+    dataType: 'json',
+    headers: { Accept : 'application/json' }
+  });
+
+  return we.cache.files[id];
+};
+
 we.components.fileSelector = {
   formModalContentIsLoad: true,
 
@@ -122,3 +137,26 @@ we.components.fileSelector = {
 }
 
 })(window.we);
+
+window.addEventListener('WebComponentsReady', function() {
+  var we = window.we;
+
+  /**
+   *  -- Image description component
+   *  usage: <we-image-description data-id="{{id}}"></we-image-description>
+   */
+  var WeFileDescriptionPrototype = Object.create(HTMLElement.prototype);
+  WeFileDescriptionPrototype.createdCallback = function() {
+    var self = this;
+
+    var id = this.dataset.id;
+    if (!id) return console.warn('data-id is required for we-file-description');
+
+    we.cache.findFile(id).then(function (result) {
+      self.textContent = result.file.originalname;
+    });
+  };
+  document.registerElement('we-file-description', {
+    prototype: WeFileDescriptionPrototype
+  });
+});

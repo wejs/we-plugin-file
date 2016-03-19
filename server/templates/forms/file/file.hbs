@@ -25,13 +25,26 @@
     </tr></thead>
     <tbody>
       {{#each value}}
-        <tr>
-          <td data-file-name>{{originalname}}</td>
-          <td>
-            <button onclick="we.components.fileSelector.removeFile(this, '#{{../fieldId}}')" type="button" class="btn btn-danger">{{t 'file.remove'}}</button>
-            <input name="{{../name}}" type="hidden" value="{{id}}">
-          </td>
-        </tr>
+
+        {{#if this.id}}
+          <tr>
+            <td><we-file-description data-id="{{id}}"></we-file-description></td>
+            <td>
+              <button onclick="we.components.fileSelector.removeFile(this, '#{{../fieldId}}')" type="button" class="btn btn-danger">{{t 'file.remove'}}</button>
+              <input name="{{../name}}" type="hidden" value="{{id}}">
+            </td>
+          </tr>
+        {{else}}
+          <tr>
+            <td>
+               <we-file-description data-id="{{this}}"></we-file-description>
+            </td>
+            <td>
+              <button onclick="we.components.fileSelector.removeFile(this, '#{{../fieldId}}')" type="button" class="btn btn-danger">{{t 'file.remove'}}</button>
+              <input name="{{../name}}" type="hidden" value="{{this}}">
+            </td>
+          </tr>
+        {{/if}}
       {{/each}}
     </tbody>
   </table>

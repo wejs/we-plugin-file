@@ -29,14 +29,31 @@
     </tr></thead>
     <tbody>
       {{#each value}}
-        <tr>
-          <td data-image-name>{{originalname}} : {{description}}</td>
-          <td data-image-thumbnail><img alt="{{description}}" src="{{urls.thumbnail}}"></td>
-          <td>
-            <button onclick="we.components.imageSelector.removeImage(this, '#{{../fieldId}}')" type="button" class="btn btn-danger">{{t 'image.remove'}}</button>
-            <input name="{{../name}}" type="hidden" value="{{id}}">
-          </td>
-        </tr>
+        {{#if this.id}}
+          <tr>
+            <td><we-image-description data-id="{{id}}"></we-image-description></td>
+            <td>
+              <we-image data-id="{{id}}" data-style="thumbnail"></we-image>
+            </td>
+            <td>
+              <button onclick="we.components.imageSelector.removeImage(this, '#{{../fieldId}}')" type="button" class="btn btn-danger">{{t 'image.remove'}}</button>
+              <input name="{{../name}}" type="hidden" value="{{id}}">
+            </td>
+          </tr>
+        {{else}}
+          <tr>
+            <td>
+               <we-image-description data-id="{{this}}"></we-image-description>
+            </td>
+            <td>
+              <we-image data-id="{{this}}" data-style="thumbnail"></we-image>
+            </td>
+            <td>
+              <button onclick="we.components.imageSelector.removeImage(this, '#{{../fieldId}}')" type="button" class="btn btn-danger">{{t 'image.remove'}}</button>
+              <input name="{{../name}}" type="hidden" value="{{this}}">
+            </td>
+          </tr>
+        {{/if}}
       {{/each}}
     </tbody>
   </table>
