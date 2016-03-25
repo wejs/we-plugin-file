@@ -254,7 +254,7 @@ we.components.imageSelector = {
    */
   getImagesFromServer: function() {
     var cfgs = {
-      url: this.host + '/api/v1/image',
+      url: this.host + '/api/v1/image?selector=owner',
       type: 'GET',
       dataType: 'json',
       cache: false,

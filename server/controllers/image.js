@@ -8,10 +8,11 @@ var gm = require('gm');
 
 module.exports = {
   find: function findAll(req, res) {
-    if (req.we.acl.canStatic('find_all_system_images', req.userRoleNames) ) {
-      // show all
-    } else if (req.isAuthenticated()) {
-      res.locals.query.creatorId = req.user.id
+    if (req.query.selector === 'owner') {
+      // see only own images
+      res.locals.query.where.creatorId = req.user.id
+    } else if (req.we.acl.canStatic('find_all_system_images', req.userRoleNames)) {
+      // can see all images
     } else {
       return res.forbidden();
     }
