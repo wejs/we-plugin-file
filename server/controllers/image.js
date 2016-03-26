@@ -81,7 +81,7 @@ module.exports = {
           we.log.error('image:findOne: error in send file', err);
         });
       })
-    });
+    }).catch(res.queryError);
   },
 
   /**
