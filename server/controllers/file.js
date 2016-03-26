@@ -39,7 +39,7 @@ module.exports = {
       }
 
       var filePath = file.getFilePath();
-      res.sendFile(filePath);
+      res.download(filePath);
     }).catch(res.queryError);
   },
 
