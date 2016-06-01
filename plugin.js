@@ -1,6 +1,9 @@
 /**
  * We.js we-pluginfile plugin settings
  */
+var multer = require('multer');
+var uuid = require('node-uuid');
+
 module.exports = function loadPlugin(projectPath, Plugin) {
   var plugin = new Plugin(__dirname);
 
@@ -232,6 +235,39 @@ module.exports = function loadPlugin(projectPath, Plugin) {
       permission    : true
     }
   });
+
+  //
+  // - Plugin functions
+  //
+  plugin.defaultFilename = function defaultFilename (req, file, cb) {
+    file.name = Date.now() + '_' + uuid.v1() +'.'+ file.originalname.split('.').pop();
+    cb(null, file.name);
+  }
+
+  plugin.uploader = function getUploader(uploadConfigs) {
+    return multer({
+      storage:  multer.diskStorage({
+        destination: uploadConfigs.dest || uploadConfigs.destination,
+        filename: uploadConfigs.filename || plugin.defaultFilename,
+      }),
+      limits: uploadConfigs.limits,
+      fileFilter: uploadConfigs.fileFilter
+    }).fields(uploadConfigs.fields);
+  }
+
+  plugin.events.on('router:before:set:controller:middleware', function(data) {
+    // data = {we: app, middlewares: middlewares, config: config
+    var config = data.config;
+    var middlewares = data.middlewares;
+    // bind upload  if have upload config and after ACL check
+    if (config.upload) {
+      middlewares.push(plugin.uploader(config.upload));
+    }
+  });
+
+  //
+  // - Plugin assets
+  //
 
   plugin.addJs('we.component.imageSelector', {
     type: 'plugin', weight: 20, pluginName: 'we-plugin-file',
