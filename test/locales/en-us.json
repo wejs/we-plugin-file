@@ -1,4 +1,7 @@
 {
 	"file.create.image.required": "file.create.image.required",
-	"user": "user"
+	"user": "user",
+	"response.serveError.title": "response.serveError.title",
+	"response.forbidden.title": "response.forbidden.title",
+	"ER_BAD_FIELD_ERROR: Unknown column 'creator.roles' in 'field list'": "ER_BAD_FIELD_ERROR: Unknown column 'creator.roles' in 'field list'"
 }

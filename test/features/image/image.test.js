@@ -28,9 +28,13 @@ describe('imageFeature', function () {
     it('get /api/v1/image route should find one image', function (done) {
       request(http)
       .get('/api/v1/image')
+      .expect(200)
       .end(function (err, res) {
-        if(err) throw err;
-        assert.equal(200, res.status);
+        if(err) {
+          console.log(res.text);
+          throw err;
+        }
+
         assert(res.body.image);
         assert( _.isArray(res.body.image) , 'image not is array');
 
