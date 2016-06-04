@@ -3,7 +3,6 @@
  *
  * @module      :: Model
  */
-var mkdirp = require('mkdirp');
 
 module.exports = function FileModel(we) {
   var _ = we.utils._;
@@ -22,14 +21,25 @@ module.exports = function FileModel(we) {
         unique: true
       },
 
-      size: { type: we.db.Sequelize.INTEGER },
-      encoding: { type: we.db.Sequelize.STRING },
+      size: {
+        type: we.db.Sequelize.INTEGER
+      },
+      encoding: {
+        type: we.db.Sequelize.STRING
+      },
 
-      active: { type: we.db.Sequelize.BOOLEAN, defaultValue: true },
+      active: {
+        type: we.db.Sequelize.BOOLEAN, defaultValue: true
+      },
 
       originalname: { type: we.db.Sequelize.STRING },
       mime: { type: we.db.Sequelize.STRING(50) },
-      extension: { type: we.db.Sequelize.STRING(10) }
+      extension: { type: we.db.Sequelize.STRING(10) },
+
+      urls: {
+        type: we.db.Sequelize.BLOB,
+        allowNull: false
+      }
     },
     associations: {
       creator: { type: 'belongsTo', model: 'user' }
@@ -39,11 +49,11 @@ module.exports = function FileModel(we) {
       comment: 'We.js file table',
 
       classMethods: {
-        getStyleUrlFromFile: function(r) {
-          return {
-            original: we.config.hostname + '/api/v1/file-download/' + r.name
-          };
-        },
+        // getStyleUrlFromFile: function(r) {
+        //   return {
+        //     original: we.config.hostname + '/api/v1/file-download/' + r.name
+        //   };
+        // },
 
         getFilePath: function getFilePath(fileName) {
           return we.config.upload.file.uploadPath + '/' + fileName;
@@ -51,27 +61,17 @@ module.exports = function FileModel(we) {
       },
 
       instanceMethods: {
-        toJSON: function() {
-          var obj = this.get();
-          obj.urls = we.db.models.file.getStyleUrlFromFile(obj);
-          return obj;
-        },
+        // toJSON: function() {
+        //   var obj = this.get();
+        //   obj.urls = we.db.models.file.getStyleUrlFromFile(obj);
+        //   return obj;
+        // },
         getFilePath: function getFilePath() {
           return we.db.models.file.getFilePath(this.name);
         }
       }
     }
   }
-
-  we.hooks.on('we:create:default:folders', function (we, done) {
-    // create file upload path
-    mkdirp(we.config.upload.file.uploadPath, function (err) {
-      if (err) we.log.error('Error on create file upload path', err);
-    })
-
-    done();
-  });
-
 
   // use before instance to set sequelize virtual fields for term fields
   we.hooks.on('we:models:before:instance', function (we, done) {
@@ -329,10 +329,6 @@ module.exports = function FileModel(we) {
       }).catch(done);
     }
   });
-
-
-
-
 
   /**
    * Get sequelize file field getter function

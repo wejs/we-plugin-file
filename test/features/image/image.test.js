@@ -17,8 +17,12 @@ describe('imageFeature', function () {
     request(http)
     .post('/api/v1/image')
     .attach('image', stubs.getImageFilePath())
+    .expect(201)
     .end(function (err, res) {
-      if(err) throw err;
+      if (err) {
+        console.log('res.text>', res.text)
+        throw err;
+      }
       salvedImage = res.body.image;
       done(err);
     });

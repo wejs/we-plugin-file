@@ -16,12 +16,15 @@ module.exports = {
     files.file[0].mime = files.file[0].mimetype;
     if (req.isAuthenticated()) files.file[0].creatorId = req.user.id;
 
+    console.log('<<<files', files);
+
     res.locals.Model.create(files.file[0])
-    .then(function (record) {
+    .then(function afterCreateAndUpload(record) {
       if (record) we.log.debug('New file record created:', record.get());
       return res.created(record);
     });
   },
+
   download: function download(req, res) {
     var fileName = req.params.name;
 
@@ -31,7 +34,7 @@ module.exports = {
 
     req.we.db.models.file.findOne({
       where: { name: fileName}
-    }).then(function (file) {
+    }).then(function afterFind(file) {
       // file not found
       if (!file) {
         req.we.log.silly('file:download: file not found:', fileName);

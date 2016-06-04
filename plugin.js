@@ -1,11 +1,17 @@
 /**
  * We.js we-pluginfile plugin settings
  */
-var multer = require('multer');
-var uuid = require('node-uuid');
+var multer = require('multer')
+var uuid = require('node-uuid')
+var mkdirp = require('mkdirp');
 
 module.exports = function loadPlugin(projectPath, Plugin) {
-  var plugin = new Plugin(__dirname);
+  var plugin = new Plugin(__dirname)
+
+  plugin.defaultFilename = function defaultFilename (req, file, cb) {
+    file.name = Date.now() + '_' + uuid.v1() +'.'+ file.originalname.split('.').pop();
+    cb(null, file.name);
+  }
 
   var imageMimeTypes = [
     'image/png',
@@ -145,8 +151,10 @@ module.exports = function loadPlugin(projectPath, Plugin) {
       responseType  : 'json',
       permission    : 'upload_image',
       upload: {
-        // destination folder used in multer({ dest: '' })
-        dest: projectPath + '/files/uploads/images/original',
+        storage: multer.diskStorage({
+          destination: projectPath + '/files/uploads/images/original',
+          filename: plugin.defaultFilename,
+        }),
         // limmit settings used in multer({ limits: '' })
         limits: {
           fieldNameSize: 150,
@@ -194,7 +202,10 @@ module.exports = function loadPlugin(projectPath, Plugin) {
       responseType  : 'json',
       permission    : 'upload_file',
       upload: {
-        dest: projectPath + '/files/uploads/files',
+        storage: multer.diskStorage({
+          destination: projectPath + '/files/uploads/files',
+          filename: plugin.defaultFilename,
+        }),
 
         limits: {
           fieldNameSize: 150,
@@ -239,23 +250,11 @@ module.exports = function loadPlugin(projectPath, Plugin) {
   //
   // - Plugin functions
   //
-  plugin.defaultFilename = function defaultFilename (req, file, cb) {
-    file.name = Date.now() + '_' + uuid.v1() +'.'+ file.originalname.split('.').pop();
-    cb(null, file.name);
-  }
-
   plugin.uploader = function getUploader(uploadConfigs) {
-    return multer({
-      storage:  multer.diskStorage({
-        destination: uploadConfigs.dest || uploadConfigs.destination,
-        filename: uploadConfigs.filename || plugin.defaultFilename,
-      }),
-      limits: uploadConfigs.limits,
-      fileFilter: uploadConfigs.fileFilter
-    }).fields(uploadConfigs.fields);
+    return multer(uploadConfigs).fields(uploadConfigs.fields);
   }
 
-  plugin.events.on('router:before:set:controller:middleware', function(data) {
+  plugin.setUploadMiddleware = function setUploadMiddleware(data) {
     // data = {we: app, middlewares: middlewares, config: config
     var config = data.config;
     var middlewares = data.middlewares;
@@ -263,7 +262,23 @@ module.exports = function loadPlugin(projectPath, Plugin) {
     if (config.upload) {
       middlewares.push(plugin.uploader(config.upload));
     }
-  });
+  }
+
+  plugin.createFileFolder = function createFileFolder(we, done) {
+    // create file upload path
+    mkdirp(we.config.upload.file.uploadPath, function (err) {
+      if (err) we.log.error('Error on create file upload path', err);
+    })
+
+    done();
+  }
+
+  //
+  // -- Events
+  //
+
+  plugin.events.on('router:before:set:controller:middleware', plugin.setUploadMiddleware);
+  plugin.hooks.on('we:create:default:folders', plugin.createFileFolder);
 
   //
   // - Plugin assets
