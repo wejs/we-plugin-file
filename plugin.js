@@ -180,7 +180,7 @@ module.exports = function loadPlugin(projectPath, Plugin) {
       responseType  : 'json',
       permission    : 'find_file'
     },
-    'get /api/v1/file/:name': {
+    'get /api/v1/file-download/:name': {
       controller    : 'file',
       action        : 'download',
       model         : 'file',

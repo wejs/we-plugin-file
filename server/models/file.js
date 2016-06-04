@@ -41,7 +41,7 @@ module.exports = function FileModel(we) {
       classMethods: {
         getStyleUrlFromFile: function(r) {
           return {
-            original: we.config.hostname + '/api/v1/file/' + r.name
+            original: we.config.hostname + '/api/v1/file-download/' + r.name
           };
         },
 
