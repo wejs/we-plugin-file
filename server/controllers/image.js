@@ -104,7 +104,7 @@ module.exports = {
         id: fileId
       }
     })
-    .then(function afterFindOne(image) {
+    .then(function afterFindOne (image) {
       if (!image) {
         return res.send(404)
       }

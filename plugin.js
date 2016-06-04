@@ -128,14 +128,14 @@ module.exports = function loadPlugin (projectPath, Plugin) {
       loadRecord: true,
       permission: 'find_image'
     },
-    'post /api/v1/image-crop/:id([0-9]+)': {
-      controller: 'image',
-      action: 'cropImage',
-      model: 'image',
-      responseType: 'json',
-      loadRecord: true,
-      permission: 'crop_image'
-    },
+    // 'post /api/v1/image-crop/:id([0-9]+)': {
+    //   controller: 'image',
+    //   action: 'cropImage',
+    //   model: 'image',
+    //   responseType: 'json',
+    //   loadRecord: true,
+    //   permission: 'crop_image'
+    // },
     // 'delete /api/v1/image/:id([0-9]+)': {
     //   controller    : 'image',
     //   action        : 'delete',
