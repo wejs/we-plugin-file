@@ -5,7 +5,7 @@
  *
  */
 
-module.exports = function ImageAssocModel(we) {
+module.exports = function ImageAssocModel (we) {
   // set sequelize model define and options
   var model = {
     definition: {
@@ -35,5 +35,5 @@ module.exports = function ImageAssocModel(we) {
     },
     options: { paranoid: false }
   }
-  return model;
+  return model
 }

@@ -1,4 +1,4 @@
-var exec = require('child_process').exec;
+var exec = require('child_process').exec
 
 module.exports = {
   /**
@@ -7,12 +7,12 @@ module.exports = {
    * @param  {Object}   we    we.js object
    * @param  {Function} done  callback
    */
-  install: function install(we, done) {
+  install: function install (we, done) {
     exec('gm version', function (error) {
       if (error) {
-        return done('Requirement GraphicsMagick not found or not instaled, see: https://github.com/aheckmann/gm');
+        return done('Requirement GraphicsMagick not found or not instaled, see: https://github.com/aheckmann/gm')
       }
-      return done();
-    });
+      return done()
+    })
   }
-};
+}

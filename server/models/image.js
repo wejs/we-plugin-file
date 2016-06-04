@@ -4,13 +4,13 @@
  * @module      :: Model
  *
  */
-var fs = require('fs');
-var gm = require('gm');
-var mkdirp = require('mkdirp');
+var fs = require('fs')
+var gm = require('gm')
+var mkdirp = require('mkdirp')
 
-module.exports = function ImageModel(we) {
-  var _ = we.utils._;
-  var async = we.utils.async;
+module.exports = function ImageModel (we) {
+  var _ = we.utils._
+  var async = we.utils.async
 
   // set sequelize model define and options
   var model = {
@@ -45,14 +45,14 @@ module.exports = function ImageModel(we) {
       comment: 'We.js image table',
 
       classMethods: {
-        getStyleUrlFromImage: function(image) {
+        getStyleUrlFromImage: function (image) {
           return {
             original: we.config.hostname + '/api/v1/image/original/' + image.name,
             thumbnail: we.config.hostname + '/api/v1/image/thumbnail/' + image.name,
             mini: we.config.hostname + '/api/v1/image/mini/' + image.name,
             medium: we.config.hostname + '/api/v1/image/medium/' + image.name,
             large: we.config.hostname + '/api/v1/image/large/' + image.name
-          };
+          }
         },
 
         /**
@@ -60,13 +60,13 @@ module.exports = function ImageModel(we) {
          *
          * @return {object} avaible image styles
          */
-        getImageStyles: function getImageStyles() {
-          return we.config.upload.image.avaibleStyles;
+        getImageStyles: function getImageStyles () {
+          return we.config.upload.image.avaibleStyles
         },
 
-        getImagePath: function getImagePath(imageStyle, fileName) {
-          if (!imageStyle) imageStyle = 'original';
-          return we.config.upload.image.uploadPath + '/'+ imageStyle +'/' + fileName;
+        getImagePath: function getImagePath (imageStyle, fileName) {
+          if (!imageStyle) imageStyle = 'original'
+          return we.config.upload.image.uploadPath + '/' + imageStyle + '/' + fileName
         },
 
         /**
@@ -76,24 +76,25 @@ module.exports = function ImageModel(we) {
          * @param  {String}   imageStyle
          * @param  {Function} callback
          */
-        getFileStreamOrResize: function getFileStreamOrResize(fileName, imageStyle, callback) {
-          var path = we.db.models.image.getImagePath(imageStyle, fileName);
+        getFileStreamOrResize: function getFileStreamOrResize (fileName, imageStyle, callback) {
+          var path = we.db.models.image.getImagePath(imageStyle, fileName)
           // check if file exists with fs.stat
-          fs.stat(path, function afterCheckIfFileExists(err) {
+          fs.stat(path, function afterCheckIfFileExists (err) {
             if (err) {
-              if (err.code !== 'ENOENT' || imageStyle === 'original' ) {
-                return callback(err);
+              if (err.code !== 'ENOENT' || imageStyle === 'original') {
+                return callback(err)
               }
-              we.db.models.image.resizeImage(fileName, imageStyle, function afterResizeImage(err){
-                if (err) return callback(err);
+              we.db.models.image
+              .resizeImage(fileName, imageStyle, function afterResizeImage (err) {
+                if (err) return callback(err)
                 // fs.readFile(path, function (err, contents) {
-                  callback(null, fs.ReadStream(path));
+                callback(null, fs.ReadStream(path))
                 // });
-              });
+              })
             } else {
-              callback(null, fs.ReadStream(path));
+              callback(null, fs.ReadStream(path))
             }
-          });
+          })
         },
         /**
          * Resize one image to fit image style size
@@ -102,19 +103,19 @@ module.exports = function ImageModel(we) {
          * @param  {String}   imageStyle
          * @param  {Function} cb         callback
          */
-        resizeImage: function resizeImage(fileName, imageStyle, cb) {
-          var originalFile =  we.db.models.image.getImagePath('original', fileName);
-          var newImagePath = we.db.models.image.getImagePath(imageStyle, fileName);
+        resizeImage: function resizeImage (fileName, imageStyle, cb) {
+          var originalFile = we.db.models.image.getImagePath('original', fileName)
+          var newImagePath = we.db.models.image.getImagePath(imageStyle, fileName)
 
-          var width = we.config.upload.image.styles[imageStyle].width;
-          var height = we.config.upload.image.styles[imageStyle].heigth;
+          var width = we.config.upload.image.styles[imageStyle].width
+          var height = we.config.upload.image.styles[imageStyle].heigth
 
           // resize, center and crop to fit size
           gm(originalFile)
           .resize(width, height, '^')
           .gravity('Center')
           .crop(width, height)
-          .write(newImagePath, cb);
+          .write(newImagePath, cb)
         },
 
         /**
@@ -124,19 +125,19 @@ module.exports = function ImageModel(we) {
          * @param  {object}   cords
          * @param  {Function} cb           callback
          */
-        resizeImageAndReturnSize: function(originalFile, cords, cb) {
+        resizeImageAndReturnSize: function (originalFile, cords, cb) {
           gm(originalFile).crop(cords.width, cords.height, cords.x, cords.y)
           .write(originalFile, function (err) {
             if (err) {
-              we.log.error('Error on crop file:', originalFile, cords, err);
-              return cb(err);
+              we.log.error('Error on crop file:', originalFile, cords, err)
+              return cb(err)
             }
             // get image size
             gm(originalFile).size(function (err, size) {
-              if (err) return cb(err);
-              return cb(null,size);
-            });
-          });
+              if (err) return cb(err)
+              return cb(null, size)
+            })
+          })
         },
 
         /**
@@ -144,33 +145,33 @@ module.exports = function ImageModel(we) {
          * @param  {string}   imageName
          * @param  {Function} callback
          */
-        deleteImageStylesWithImageName: function(imageName, callback){
-          var imageStyles = we.db.models.image.getImageStyles();
-          async.each(imageStyles,function(style, next){
-            var path = we.db.models.image.getImagePath(style, imageName);
-            fs.exists(path, function(exists) {
-              we.log.verbose(path, exists);
+        deleteImageStylesWithImageName: function (imageName, callback) {
+          var imageStyles = we.db.models.image.getImageStyles()
+          async.each(imageStyles, function (style, next) {
+            var path = we.db.models.image.getImagePath(style, imageName)
+            fs.exists(path, function (exists) {
+              we.log.verbose(path, exists)
               if (exists) {
                 fs.unlink(path, function (err) {
-                  if (err) throw err;
-                  next();
-                });
+                  if (err) throw err
+                  next()
+                })
               } else {
-                next();
+                next()
               }
-            });
-          },callback);
+            })
+          }, callback)
         }
       },
 
       instanceMethods: {
-        toJSON: function() {
-          var obj = this.get();
-          obj.urls = we.db.models.image.getStyleUrlFromImage(obj);
-          return obj;
+        toJSON: function () {
+          var obj = this.get()
+          obj.urls = we.db.models.image.getStyleUrlFromImage(obj)
+          return obj
         },
-        getImagePath: function(imageStyle) {
-          return we.db.models.image.getImagePath(imageStyle, this.name);
+        getImagePath: function (imageStyle) {
+          return we.db.models.image.getImagePath(imageStyle, this.name)
         }
       }
     }
@@ -179,290 +180,302 @@ module.exports = function ImageModel(we) {
   we.hooks.on('we:create:default:folders', function (we, done) {
     // create image upload path
     mkdirp(we.config.upload.image.uploadPath, function (err) {
-      if (err) we.log.error('Error on create image upload path', err);
+      if (err) we.log.error('Error on create image upload path', err)
 
-      var imageStyles = we.db.models.image.getImageStyles();
+      var imageStyles = we.db.models.image.getImageStyles()
 
       async.each(imageStyles, function (style, next) {
-        var imageDir = we.config.upload.image.uploadPath + '/' + style;
+        var imageDir = we.config.upload.image.uploadPath + '/' + style
         fs.lstat(imageDir, function (err) {
           if (err) {
             if (err.code === 'ENOENT') {
-              we.log.info('Creating the image upload directory: ' + imageDir);
+              we.log.info('Creating the image upload directory: ' + imageDir)
               return mkdirp(imageDir, function (err) {
-                if (err) we.log.error('Error on create upload path', err);
-                return next();
-              });
+                if (err) we.log.error('Error on create upload path', err)
+                return next()
+              })
             }
-            we.log.error('Error on create image dir: ', imageDir);
-            return next(err);
+            we.log.error('Error on create image dir: ', imageDir)
+            return next(err)
           } else {
-            next();
+            next()
           }
-        });
-      }, done);
+        })
+      }, done)
     })
-  });
-
+  })
 
   // use before instance to set sequelize virtual fields for term fields
   we.hooks.on('we:models:before:instance', function (we, done) {
-    var f, cfgs;
-    var models = we.db.modelsConfigs;
+    var f, cfgs
+    var models = we.db.modelsConfigs
 
     for (var modelName in models) {
       if (models[modelName].options && models[modelName].options.imageFields) {
-
         for (f in models[modelName].options.imageFields) {
           if (models[modelName].definition[f]) {
-            we.log.verbose('Field already defined for image field:', f);
-            continue;
+            we.log.verbose('Field already defined for image field:', f)
+            continue
           }
           // set field configs
-          cfgs = _.clone(models[modelName].options.imageFields[f]);
-          cfgs.type = we.db.Sequelize.VIRTUAL;
+          cfgs = _.clone(models[modelName].options.imageFields[f])
+          cfgs.type = we.db.Sequelize.VIRTUAL
           // set virtual setter
-          cfgs.set = getFieldSetter(f, cfgs);
+          cfgs.set = getFieldSetter(f, cfgs)
           // set virtual getter
-          cfgs.get = getFieldGetter(f, cfgs);
+          cfgs.get = getFieldGetter(f, cfgs)
           // set form field html
-          cfgs.formFieldType = 'file/image';
+          cfgs.formFieldType = 'file/image'
           // set virtual fields for term fields if not exists
-          models[modelName].definition[f] = cfgs;
+          models[modelName].definition[f] = cfgs
         }
       }
     }
 
-    done();
-  });
+    done()
+  })
 
    // after define all models add image field hooks in models how have images
   we.hooks.on('we:models:set:joins', function (we, done) {
-    var models = we.db.models;
+    var models = we.db.models
     for (var modelName in models) {
       var imageFields = we.file.image.getModelImageFields(
         we.db.modelsConfigs[modelName]
-      );
+      )
 
-      if ( _.isEmpty(imageFields) ) continue;
+      if (_.isEmpty(imageFields)) continue
 
-      models[modelName].addHook('afterFind', 'loadImages', we.file.image.afterFind);
-      models[modelName].addHook('afterCreate', 'createImage', we.file.image.afterCreatedRecord);
-      models[modelName].addHook('afterUpdate', 'updateImage', we.file.image.afterUpdatedRecord);
-      models[modelName].addHook('afterDestroy', 'destroyImage', we.file.image.afterDeleteRecord);
+      models[modelName].addHook('afterFind', 'loadImages', we.file.image.afterFind)
+      models[modelName].addHook('afterCreate', 'createImage', we.file.image.afterCreatedRecord)
+      models[modelName].addHook('afterUpdate', 'updateImage', we.file.image.afterUpdatedRecord)
+      models[modelName].addHook('afterDestroy', 'destroyImage', we.file.image.afterDeleteRecord)
     }
 
-    done();
-  });
+    done()
+  })
 
   we.events.on('we:after:load:plugins', function (we) {
-    if (!we.file) we.file = {};
-    if (!we.file.image) we.file.image = {};
-    var db = we.db;
+    if (!we.file) we.file = {}
+    if (!we.file.image) we.file.image = {}
+    var db = we.db
 
     we.file.image.getModelImageFields = function getModelImageFields(Model) {
       if (!Model || !Model.options || !Model.options.imageFields) return null;
-      return Model.options.imageFields;
+      return Model.options.imageFields
     }
 
-    we.file.image.afterFind = function afterFind(r, opts, done) {
-      var Model = this;
-      if ( _.isArray(r) ) {
+    we.file.image.afterFind = function afterFind (r, opts, done) {
+      var Model = this
+      if (_.isArray(r)) {
         async.each(r, function (r1, next) {
           // we.db.models.imageassoc
-          we.file.image.afterFindRecord.bind(Model)(r1, opts, next);
-        }, done);
+          we.file.image.afterFindRecord.bind(Model)(r1, opts, next)
+        }, done)
       } else {
-        we.file.image.afterFindRecord.bind(Model)(r, opts, done) ;
+        we.file.image.afterFindRecord.bind(Model)(r, opts, done)
       }
     }
-    we.file.image.afterFindRecord = function afterFindRecord(r, opts, done) {
-      var functions = [];
-      var Model = this;
+    we.file.image.afterFindRecord = function afterFindRecord (r, opts, done) {
+      var functions = []
+      var Model = this
       // found 0 results
-      if (!r) return done();
+      if (!r) return done()
 
-      var fields = we.file.image.getModelImageFields(this);
-      if (!fields) return done();
+      var fields = we.file.image.getModelImageFields(this)
+      if (!fields) return done()
 
-      if (!r._salvedImages) r._salvedImages = {};
-      if (!r._salvedImageAssocs) r._salvedImageAssocs = {};
+      if (!r._salvedImages) r._salvedImages = {}
+      if (!r._salvedImageAssocs) r._salvedImageAssocs = {}
 
-      var fieldNames = Object.keys(fields);
+      var fieldNames = Object.keys(fields)
       // for each field
       fieldNames.forEach(function (fieldName) {
         functions.push(function (next) {
           return db.models.imageassoc.findAll({
             where: { modelName: Model.name, modelId: r.id, field: fieldName },
             include: [{ all: true }]
-          }).then(function (imgAssocs) {
-            if (_.isEmpty(imgAssocs)) return next();
+          })
+          .then(function (imgAssocs) {
+            if (_.isEmpty(imgAssocs)) return next()
 
             r._salvedImages = imgAssocs.map(function (imgAssoc) {
-              return imgAssoc.image.toJSON();
-            });
+              return imgAssoc.image.toJSON()
+            })
 
-            r.setDataValue(fieldName, r._salvedImages);
+            r.setDataValue(fieldName, r._salvedImages)
             // salved terms cache
-            r._salvedImageAssocs[fieldName] = imgAssocs;
-            return next();
-          }).catch(next);
-        });
-      });
+            r._salvedImageAssocs[fieldName] = imgAssocs
+            return next()
+          })
+          .catch(next)
+        })
+      })
 
-      async.parallel(functions, done);
+      async.parallel(functions, done)
     }
     // after create one record with image fields
-    we.file.image.afterCreatedRecord = function afterCreatedRecord(r, opts, done) {
-      var functions = [];
-      var Model = this;
+    we.file.image.afterCreatedRecord = function afterCreatedRecord (r, opts, done) {
+      var functions = []
+      var Model = this
 
-      var fields = we.file.image.getModelImageFields(this);
-      if (!fields) return done();
+      var fields = we.file.image.getModelImageFields(this)
+      if (!fields) return done()
 
-      var imageFields = Object.keys(fields);
+      var imageFields = Object.keys(fields)
 
-      if (!r._salvedImages) r._salvedImages = {};
-      if (!r._salvedImageAssocs) r._salvedImageAssocs = {};
+      if (!r._salvedImages) r._salvedImages = {}
+      if (!r._salvedImageAssocs) r._salvedImageAssocs = {}
 
       imageFields.forEach(function (fieldName) {
-        var values = r.get(fieldName);
-        if (_.isEmpty(values)) return;
+        var values = r.get(fieldName)
+        if (_.isEmpty(values)) return
 
-        var imagesToSave = [];
-        var newImageAssocs = [];
+        var imagesToSave = []
+        var newImageAssocs = []
 
         functions.push(function (nextField) {
           async.each(values, function (value, next) {
-            if (!value || (value == 'null') ) return next();
+            if (!value || (value === 'null')) return next()
 
             // check if the image exists
-            db.models.image.find({
-              where:{ id: value.id || value }
-            }).then(function (i) {
-              if (!i) return next();
+            db.models.image.findOne({
+              where: { id: value.id || value }
+            })
+            .then(function (i) {
+              if (!i) return next()
 
-              db.models.imageassoc.create({
+              return db.models.imageassoc.create({
                 modelName: Model.name,
                 modelId: r.id,
                 field: fieldName,
                 imageId: value.id || value
-              }).then(function (r) {
-                we.log.verbose('Image assoc created:', r.id);
+              })
+              .then(function (r) {
+                we.log.verbose('Image assoc created:', r.id)
 
-                imagesToSave.push(i);
-                newImageAssocs.push(r);
+                imagesToSave.push(i)
+                newImageAssocs.push(r)
 
-                next();
-              }).catch(next);
-            }).catch(next);
+                next()
+              })
+            })
+            .catch(next)
           }, function (err) {
-            if (err) return nextField(err);
+            if (err) return nextField(err)
 
-            r._salvedImageAssocs[fieldName] = newImageAssocs;
-            r._salvedImages[fieldName] = imagesToSave;
+            r._salvedImageAssocs[fieldName] = newImageAssocs
+            r._salvedImages[fieldName] = imagesToSave
             r.setDataValue(fieldName, imagesToSave.map(function (im) {
-              return im.toJSON();
-            }));
+              return im.toJSON()
+            }))
 
-            nextField();
-          });
-        });
-      });
-      async.series(functions, done);
+            nextField()
+          })
+        })
+      })
+
+      async.series(functions, done)
     }
     // after update one record with image fields
-    we.file.image.afterUpdatedRecord = function afterUpdatedRecord(r, opts, done) {
-      var Model = this;
+    we.file.image.afterUpdatedRecord = function afterUpdatedRecord (r, opts, done) {
+      var Model = this
 
-      var fields = we.file.image.getModelImageFields(this);
-      if (!fields) return done();
+      var fields = we.file.image.getModelImageFields(this)
+      if (!fields) return done()
 
-      var fieldNames = Object.keys(fields);
+      var fieldNames = Object.keys(fields)
       async.eachSeries(fieldNames, function (fieldName, nextField) {
         // check if user whant update this field
-        if (opts.fields.indexOf(fieldName) === -1)
-          return nextField();
+        if (opts.fields.indexOf(fieldName) === -1) return nextField()
 
-        var imagesToSave = _.clone( r.get(fieldName) );
-        var newImageAssocs = [];
-        var newImageAssocsIds = [];
+        var imagesToSave = _.clone(r.get(fieldName))
+        var newImageAssocs = []
+        var newImageAssocsIds = []
 
         async.series([
           function findOrCreateAllAssocs (done) {
-            var preloadedImagesAssocsToSave = [];
+            var preloadedImagesAssocsToSave = []
 
             async.each(imagesToSave, function (its, next) {
-              if (_.isEmpty(its) || its == 'null') return next();
+              if (_.isEmpty(its) || its === 'null') return next()
 
               var values = {
                 modelName: Model.name,
                 modelId: r.id,
                 field: fieldName,
                 imageId: its.id || its
-              };
+              }
               // check if this image exits
-              db.models.image.find({
-                where:{ id: its.id || its }
-              }).then(function (i) {
-                if (!i) return done();
+              db.models.image.findOne({
+                where: { id: its.id || its }
+              })
+              .then(function (i) {
+                if (!i) return done()
                 // find of create the assoc
-                db.models.imageassoc.findOrCreate({
+                return db.models.imageassoc.findOrCreate({
                   where: values, defaults: values
-                }).then(function (r) {
-                  r[0].image = i;
-                  preloadedImagesAssocsToSave.push(r[0]);
-                  next();
-                }).catch(done);
-              });
+                })
+                .then(function (r) {
+                  r[0].image = i
+                  preloadedImagesAssocsToSave.push(r[0])
+                  next()
+                })
+              })
+              .catch(done)
             }, function (err) {
-              if (err) return done(err);
+              if (err) return done(err)
 
               imagesToSave = preloadedImagesAssocsToSave.map(function (r) {
-                newImageAssocsIds.push(r.id);
-                return r.image;
-              });
+                newImageAssocsIds.push(r.id)
+                return r.image
+              })
 
-              newImageAssocs = preloadedImagesAssocsToSave;
-              done();
-            });
+              newImageAssocs = preloadedImagesAssocsToSave
+              done()
+            })
           },
           // delete removed image assocs
-          function deleteAssocs(done) {
+          function deleteAssocs (done) {
             var query = { where: {
               modelName: Model.name, modelId: r.id, field: fieldName
             }}
 
-            if (!_.isEmpty(newImageAssocsIds)) query.where.id = { $notIn: newImageAssocsIds };
+            if (!_.isEmpty(newImageAssocsIds)) query.where.id = { $notIn: newImageAssocsIds }
 
-            db.models.imageassoc.destroy(query).then(function (result) {
-              we.log.verbose('Result from deleted image assocs: ', result, fieldName, Model.name);
-              done();
-            }).catch(done);
+            db.models.imageassoc
+            .destroy(query)
+            .then(function (result) {
+              we.log.verbose('Result from deleted image assocs: ', result, fieldName, Model.name)
+              done()
+            })
+            .catch(done)
           },
-          function setRecorValues(done) {
-            r._salvedImages[fieldName] = imagesToSave;
-            r._salvedImageAssocs[fieldName] = newImageAssocs;
+          function setRecorValues (done) {
+            r._salvedImages[fieldName] = imagesToSave
+            r._salvedImageAssocs[fieldName] = newImageAssocs
             r.setDataValue(fieldName, imagesToSave.map(function (im) {
-              return im.toJSON();
-            }));
-            done();
+              return im.toJSON()
+            }))
+            done()
           }
-        ], nextField);
-      }, done);
+        ], nextField)
+      }, done)
     }
     // delete the image associations after delete related model
     we.file.image.afterDeleteRecord = function afterDeleteRecord (r, opts, done) {
-      var Model = this;
+      var Model = this
 
-      db.models.imageassoc.destroy({
+      db.models.imageassoc
+      .destroy({
         where: { modelName: Model.name, modelId: r.id }
-      }).then(function (result) {
-        we.log.debug('Deleted ' + result + ' image assocs from record with id: ' + r.id);
-        return done();
-      }).catch(done);
+      })
+      .then(function (result) {
+        we.log.debug('Deleted ' + result + ' image assocs from record with id: ' + r.id)
+        return done()
+      })
+      .catch(done)
     }
-  });
+  })
 
   /**
    * Get sequelize image field getter function
@@ -470,19 +483,19 @@ module.exports = function ImageModel(we) {
    * @param  {String} fieldName
    * @return {Function}
    */
-  function getFieldSetter(fieldName) {
-    return function setImages(val) {
+  function getFieldSetter (fieldName) {
+    return function setImages (val) {
       if (_.isArray(val)) {
-        var newVal = [];
+        var newVal = []
         // skip flags and invalid values
         for (var i = 0; i < val.length; i++) {
-          if (val[i] && val[i] !== 'null') newVal.push(val[i]);
+          if (val[i] && val[i] !== 'null') newVal.push(val[i])
         }
-        this.setDataValue(fieldName, newVal);
+        this.setDataValue(fieldName, newVal)
       } else if (val && val !== 'null') {
-        this.setDataValue(fieldName, [val]);
+        this.setDataValue(fieldName, [val])
       } else {
-        this.setDataValue(fieldName, null);
+        this.setDataValue(fieldName, null)
       }
     }
   }
@@ -493,12 +506,12 @@ module.exports = function ImageModel(we) {
    * @param  {String} fieldName
    * @return {Function}
    */
-  function getFieldGetter(fieldName) {
-    return function getImages() {
+  function getFieldGetter (fieldName) {
+    return function getImages () {
       // return the value or a empty array
-      return this.getDataValue(fieldName) || [];
+      return this.getDataValue(fieldName) || []
     }
   }
 
-  return model;
+  return model
 }
