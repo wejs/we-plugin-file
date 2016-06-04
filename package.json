@@ -22,9 +22,11 @@
   "author": "Alberto Souza <alberto.souza.dev@gmail.com>",
   "license": "ISC",
   "devDependencies": {
+    "express-mysql-session": "^1.0.0",
     "fs-extra": "^0.30.0",
     "istanbul": "^0.4.3",
     "mocha": "^2.5.3",
+    "mysql": "^2.10.2",
     "rimraf": "^2.5.2",
     "sinon": "^1.17.4",
     "supertest": "^1.2.0",
