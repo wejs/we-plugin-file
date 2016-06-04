@@ -14,7 +14,8 @@
   "main": "plugin.js",
   "scripts": {
     "test": "NODE_ENV=test LOG_LV=info ./node_modules/.bin/mocha test/bootstrap.js test/**/*.test.js -b ",
-    "prepublish": "npm prune"
+    "verbose-test": "NODE_ENV=test LOG_LV=verbose ./node_modules/.bin/mocha test/bootstrap.js test/**/*.test.js -b ",
+    "coverage": "NODE_ENV=test LOG_LV=info node_modules/.bin/istanbul cover node_modules/.bin/_mocha -- -u exports -R spec test/bootstrap.js test/**/*.test.js"
   },
   "publishConfig": {
     "registry": "http://registry.npmjs.org"
@@ -33,8 +34,7 @@
     "we-core": "^1.4.3",
     "we-plugin-acl": "^1.0.0",
     "we-plugin-user": "^1.0.0",
-    "we-test-tools": "^0.3.17",
-    "we-theme-site-wejs": "^0.3.31"
+    "we-test-tools": "^0.3.17"
   },
   "repository": {
     "type": "git",
