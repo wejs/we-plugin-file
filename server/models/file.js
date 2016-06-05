@@ -21,24 +21,30 @@ module.exports = function FileModel (we) {
         unique: true
       },
 
-      size: {
-        type: we.db.Sequelize.INTEGER
-      },
-      encoding: {
-        type: we.db.Sequelize.STRING
-      },
+      size: { type: we.db.Sequelize.INTEGER },
+      encoding: { type: we.db.Sequelize.STRING },
 
       active: {
-        type: we.db.Sequelize.BOOLEAN, defaultValue: true
+        type: we.db.Sequelize.BOOLEAN,
+        defaultValue: true
       },
 
       originalname: { type: we.db.Sequelize.STRING },
       mime: { type: we.db.Sequelize.STRING(50) },
       extension: { type: we.db.Sequelize.STRING(10) },
 
+      storageName: { type: we.db.Sequelize.STRING },
+      isLocalStorage: {
+        type: we.db.Sequelize.BOOLEAN,
+        defaultValue: true
+      },
+
       urls: {
         type: we.db.Sequelize.BLOB,
         allowNull: false
+      },
+      extraData: {
+        type: we.db.Sequelize.BLOB
       }
     },
     associations: {
@@ -49,23 +55,18 @@ module.exports = function FileModel (we) {
       comment: 'We.js file table',
 
       classMethods: {
-        // getStyleUrlFromFile: function(r) {
-        //   return {
-        //     original: we.config.hostname + '/api/v1/file-download/' + r.name
-        //   };
-        // },
-
+        /**
+         * Get internal file path, only works for local storages
+         *
+         * @param  {String} fileName
+         * @return {String}
+         */
         getFilePath: function getFilePath (fileName) {
           return we.config.upload.file.uploadPath + '/' + fileName
         }
       },
 
       instanceMethods: {
-        // toJSON: function() {
-        //   var obj = this.get();
-        //   obj.urls = we.db.models.file.getStyleUrlFromFile(obj);
-        //   return obj;
-        // },
         getFilePath: function getFilePath () {
           return we.db.models.file.getFilePath(this.name)
         }

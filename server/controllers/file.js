@@ -9,18 +9,31 @@ module.exports = {
 
     if (!files.file && files.file[0]) return res.badRequest('file.create.file.required')
 
-    if (!we.utils._.isObject(files.file[0])) return res.badRequest('file.create.file.invalid')
+    var file = files.file[0]
 
-    we.log.verbose('file:create: files.file to save:', files.file[0])
+    if (!we.utils._.isObject(file)) return res.badRequest('file.create.file.invalid')
 
-    files.file[0].mime = files.file[0].mimetype
-    if (req.isAuthenticated()) files.file[0].creatorId = req.user.id
+    we.log.verbose('file:create: files.file to save:', file)
 
-    res.locals.Model.create(files.file[0])
+    file.mime = file.mimetype
+    // set creator
+    if (req.isAuthenticated()) file.creatorId = req.user.id
+    // set default file Name if not set in storage
+    if (!file.name) file.name = file.originalname
+    // set storage name
+    file.storageName = res.locals.upload.storageName
+    file.isLocalStorage = res.locals.isLocalStorage
+
+    file.urls = {}
+    // set the original url for file upploads
+    file.urls.original = res.locals.getUrlFromFile('original', file)
+
+    res.locals.Model.create(file)
     .then(function afterCreateAndUpload (record) {
-      if (record) we.log.debug('New file record created:', record.get())
-      return res.created(record)
+      we.log.debug('New file record created:', record.get())
+      res.created(record)
     })
+    .catch(res.queryError)
   },
 
   download: function download (req, res) {
@@ -42,6 +55,12 @@ module.exports = {
         return res.notFound()
       }
 
+      if (!file.isLocalStorage) {
+        if (!file.urls.original) return res.notFound('original file not found')
+        // not is local, then redirect to permanent link
+        return res.redirect(file.urls.original)
+      }
+
       var filePath = file.getFilePath()
       res.download(filePath)
     })
@@ -49,6 +68,9 @@ module.exports = {
   },
 
   getFormModalContent: function getFormModalContent (req, res) {
+    // only works with we-plugin-view
+    if (!req.we.view) return res.notFound()
+
     res.send(
       req.we.view.renderTemplate('form-' + req.params.type + '-modal-content', res.locals.theme, res.locals)
     )

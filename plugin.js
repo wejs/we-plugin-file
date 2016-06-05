@@ -65,14 +65,36 @@ module.exports = function loadPlugin (projectPath, Plugin) {
       }
     },
     upload: {
+      storages: {
+        localImages: {
+          isLocalStorage: true,
+          getUrlFromFile: function (format, file) {
+            return '/api/v1/image/' + (format || 'original') + '/' + file.name
+          },
+          storage: multer.diskStorage({
+            destination: projectPath + '/files/uploads/images/original',
+            filename: plugin.defaultFilename
+          })
+        },
+        localFiles: {
+          isLocalStorage: true,
+          getUrlFromFile: function (format, file) {
+            return '/api/v1/file-download/' + file.name
+          },
+          storage: multer.diskStorage({
+            destination: projectPath + '/files/uploads/files',
+            filename: plugin.defaultFilename
+          })
+        }
+      },
+
       file: {
         uploadPath: projectPath + '/files/uploads/files'
       },
       image: {
         uploadPath: projectPath + '/files/uploads/images',
-        avaibleStyles: [ 'mini', 'thumbnail', 'medium', 'large' ],
+        avaibleStyles: [ 'thumbnail', 'medium', 'large' ],
         styles: {
-          mini: { width: '24', heigth: '24' },
           thumbnail: { width: '75', heigth: '75' },
           medium: { width: '250', heigth: '250' },
           large: { width: '640', heigth: '640' }
@@ -128,21 +150,6 @@ module.exports = function loadPlugin (projectPath, Plugin) {
       loadRecord: true,
       permission: 'find_image'
     },
-    // 'post /api/v1/image-crop/:id([0-9]+)': {
-    //   controller: 'image',
-    //   action: 'cropImage',
-    //   model: 'image',
-    //   responseType: 'json',
-    //   loadRecord: true,
-    //   permission: 'crop_image'
-    // },
-    // 'delete /api/v1/image/:id([0-9]+)': {
-    //   controller    : 'image',
-    //   action        : 'delete',
-    //   model         : 'image',
-    //   responseType  : 'json',
-    //   permission    : 'delete_image'
-    // },
     // upload one image
     'post /api/v1/image': {
       controller: 'image',
@@ -151,10 +158,7 @@ module.exports = function loadPlugin (projectPath, Plugin) {
       responseType: 'json',
       permission: 'upload_image',
       upload: {
-        storage: multer.diskStorage({
-          destination: projectPath + '/files/uploads/images/original',
-          filename: plugin.defaultFilename
-        }),
+        storageName: 'localImages',
         // limmit settings used in multer({ limits: '' })
         limits: {
           fieldNameSize: 150,
@@ -202,10 +206,8 @@ module.exports = function loadPlugin (projectPath, Plugin) {
       responseType: 'json',
       permission: 'upload_file',
       upload: {
-        storage: multer.diskStorage({
-          destination: projectPath + '/files/uploads/files',
-          filename: plugin.defaultFilename
-        }),
+        storageName: 'localFiles',
+        isLocalStorage: true,
 
         limits: {
           fieldNameSize: 150,
@@ -250,16 +252,37 @@ module.exports = function loadPlugin (projectPath, Plugin) {
   //
   // - Plugin functions
   //
+
   plugin.uploader = function getUploader (uploadConfigs) {
     return multer(uploadConfigs).fields(uploadConfigs.fields)
   }
 
   plugin.setUploadMiddleware = function setUploadMiddleware (data) {
     // data = {we: app, middlewares: middlewares, config: config
+    var we = data.we
     var config = data.config
     var middlewares = data.middlewares
     // bind upload  if have upload config and after ACL check
     if (config.upload) {
+      if (!config.upload.storage && config.upload.storageName) {
+        var storageStrategy = we.config.upload.storages[config.upload.storageName]
+
+        if (!storageStrategy || !storageStrategy.storage) {
+          throw new Error('we-plugin-file:storage not found in we.config.upload.storages: ' + config.upload.storageName)
+        }
+
+        // storage.getUrlFromFile is required
+        if (!storageStrategy.getUrlFromFile) {
+          throw new Error('we-plugin-file:we.config.upload.storages["' +
+            config.upload.storageName +
+          '"].getUrlFromFile is required')
+        }
+
+        config.upload.storage = storageStrategy.storage
+        config.isLocalStorage = storageStrategy.isLocalStorage
+        config.getUrlFromFile = storageStrategy.getUrlFromFile
+      }
+
       middlewares.push(plugin.uploader(config.upload))
     }
   }

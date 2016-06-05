@@ -63,17 +63,16 @@ describe('imageFeature', function () {
         if(err) throw err;
         assert(res.body.image);
         assert(res.body.image.mime);
-        assert(res.body.image.width);
-        assert(res.body.image.height);
         done();
       });
     });
-
 
     it('db.models.image.create should create one image record with creator', function(done) {
       db = helpers.getDB();
       var userStub = stubs.userStub();
       var imageDataStub = stubs.imageDataStub();
+
+      imageDataStub.urls = {}
 
       db.models.user.create(userStub).then(function(user) {
         //imageDataStub.creator = user.id;
@@ -102,28 +101,6 @@ describe('imageFeature', function () {
         done();
       });
     });
-  });
-
-  describe('cropImage', function () {
-    it('post /api/v1/image-crop/:imageId should crop one image', function(done){
-      request(http)
-      .post('/api/v1/image-crop/' + salvedImage.id)
-      .send({
-        h: 200, w: 200,
-        x: 0, x2: 200,
-        y: 0, y2: 200
-      }).end(function (err, res) {
-        assert.equal(200, res.status);
-        assert.equal(res.type, 'application/json');
-        assert(res.body);
-
-        assert.equal(res.body.image.width, 200);
-        assert.equal(res.body.image.height, 200);
-
-        done();
-      });
-    });
-
   });
 
   describe('remove', function () {

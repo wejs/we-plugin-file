@@ -28,19 +28,34 @@ module.exports = function ImageModel (we) {
       size: { type: we.db.Sequelize.INTEGER },
       encoding: { type: we.db.Sequelize.STRING },
 
-      active: { type: we.db.Sequelize.BOOLEAN, defaultValue: true },
+      active: {
+        type: we.db.Sequelize.BOOLEAN,
+        defaultValue: true
+      },
 
       originalname: { type: we.db.Sequelize.STRING },
       mime: { type: we.db.Sequelize.STRING },
       extension: { type: we.db.Sequelize.STRING },
-      width: { type: we.db.Sequelize.STRING },
-      height: { type: we.db.Sequelize.STRING }
+
+      storageName: { type: we.db.Sequelize.STRING },
+      isLocalStorage: {
+        type: we.db.Sequelize.BOOLEAN,
+        defaultValue: true
+      },
+
+      urls: {
+        type: we.db.Sequelize.BLOB,
+        allowNull: false
+      },
+
+      extraData: {
+        type: we.db.Sequelize.BLOB
+      }
     },
     associations: {
       creator: { type: 'belongsTo', model: 'user' }
     },
     options: {
-
       // table comment
       comment: 'We.js image table',
 
@@ -165,11 +180,11 @@ module.exports = function ImageModel (we) {
       },
 
       instanceMethods: {
-        toJSON: function () {
-          var obj = this.get()
-          obj.urls = we.db.models.image.getStyleUrlFromImage(obj)
-          return obj
-        },
+        // toJSON: function () {
+        //   var obj = this.get()
+        //   obj.urls = we.db.models.image.getStyleUrlFromImage(obj)
+        //   return obj
+        // },
         getImagePath: function (imageStyle) {
           return we.db.models.image.getImagePath(imageStyle, this.name)
         }

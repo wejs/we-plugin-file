@@ -4,7 +4,6 @@
  * @module    :: Controller
  * @description :: Contains logic for handling requests.
  */
-var gm = require('gm')
 
 module.exports = {
   find: function findAll (req, res) {
@@ -17,8 +16,9 @@ module.exports = {
       return res.forbidden()
     }
 
-    return res.locals.Model.findAndCountAll(res.locals.query)
-    .then(function (record) {
+    return res.locals.Model
+    .findAndCountAll(res.locals.query)
+    .then(function afterFindAll (record) {
       res.locals.metadata.count = record.count
       res.locals.data = record.rows
       return res.ok()
@@ -27,7 +27,7 @@ module.exports = {
   },
 
   findOne: function findOne (req, res) {
-    var we = req.getWe()
+    var we = req.we
 
     var fileName = req.params.name
 
@@ -49,7 +49,7 @@ module.exports = {
         name: fileName
       }
     })
-    .then(function (image) {
+    .then(function afterFindOneImage (image) {
       // image not found
       if (!image) {
         we.log.silly('image:findOne: image not found:', fileName)
@@ -58,33 +58,40 @@ module.exports = {
 
       we.log.silly('image:findOne: image found:', image.get())
 
-      we.db.models.image.getFileStreamOrResize(fileName, imageStyle, function (err, stream) {
-        if (err) {
-          we.log.error('Error on getFileStreamOrResize:', fileName, err)
-          return res.serverError(err)
-        }
+      if (image.isLocalStorage) {
+        // is local storage ... get or resize
+        return we.db.models.image
+        .getFileStreamOrResize(fileName, imageStyle, function (err, stream) {
+          if (err) {
+            we.log.error('Error on getFileStreamOrResize:', fileName, err)
+            return res.serverError(err)
+          }
 
-        if (!stream) return res.notFound()
+          if (!stream) return res.notFound()
 
-        if (image.mime) {
-          res.contentType(image.mime)
-        } else {
-          res.contentType('image/png')
-        }
+          if (image.mime) {
+            res.contentType(image.mime)
+          } else {
+            res.contentType('image/png')
+          }
 
-        // set http cache headers
-        if (!res.getHeader('Cache-Control')) {
-          res.setHeader('Cache-Control', 'public, max-age=' + we.config.cache.maxage)
-        }
+          // set http cache headers
+          if (!res.getHeader('Cache-Control')) {
+            res.setHeader('Cache-Control', 'public, max-age=' + we.config.cache.maxage)
+          }
 
-        res.setHeader('Last-Modified', (new Date(image.updatedAt)).toUTCString())
+          res.setHeader('Last-Modified', (new Date(image.updatedAt)).toUTCString())
 
-        stream.pipe(res)
+          stream.pipe(res)
 
-        stream.on('error', function (err) {
-          we.log.error('image:findOne: error in send file', err)
+          stream.on('error', function (err) {
+            we.log.error('image:findOne: error in send file', err)
+          })
         })
-      })
+      } else {
+        // TODO implemente get or sesize for external storages
+        res.redirect(image.urils.original)
+      }
     })
     .catch(res.queryError)
   },
@@ -92,7 +99,7 @@ module.exports = {
   /**
    * Find image by id and returm image model data
    */
-  findOneReturnData: function (req, res) {
+  findOneReturnData: function findOneReturnData (req, res) {
     var we = req.getWe()
 
     var fileId = req.params.id
@@ -111,14 +118,15 @@ module.exports = {
       res.send({
         image: image
       })
-    }).catch(function (err) {
+    })
+    .catch(function (err) {
       we.log.error('Error on get image from BD: ', err, fileId)
       return res.send(404)
     })
   },
 
   /**
-   * Upload file to upload dir and save metadata on database
+   * Upload file to upload storage set in route and save metadata on database
    */
   create: function createOneImage (req, res) {
     var we = req.we
@@ -127,81 +135,39 @@ module.exports = {
 
     if (!files.image || !files.image[0]) return res.badRequest('file.create.image.required')
 
-    if (!we.utils._.isObject(files.image[0])) return res.badRequest('file.create.image.invalid')
+    var file = files.image[0]
 
-    we.log.verbose('image:create: files.image to save:', files.image[0])
+    if (!we.utils._.isObject(file)) return res.badRequest('file.create.image.invalid')
 
-    // get image size
-    gm(files.image[0].path).size(function (err, size) {
-      if (err) {
-        we.log.error('image.create: Error on get image file size:', err, files.image)
-        return res.serverError(err)
-      }
+    we.log.verbose('image:create: files.image to save:', file)
 
-      files.image[0].width = size.width
-      files.image[0].height = size.height
-      files.image[0].description = req.body.description
-      files.image[0].label = req.body.label
-      files.image[0].mime = files.image[0].mimetype
+    // set default file Name if not set in storage
+    if (!file.name) file.name = file.originalname
 
-      if (req.isAuthenticated()) files.image[0].creatorId = req.user.id
-
-      res.locals.Model
-      .create(files.image[0])
-      .then(function (record) {
-        if (record) we.log.debug('New image record created:', record.get())
-        return res.created(record)
-      })
-      .catch(res.queryError)
-    })
-  },
-
-  /**
-   * Crop one file by file id
-   */
-  cropImage: function cropImage (req, res) {
-    var we = req.we
-
-    if (!res.locals.data) return res.notFound()
-
-    var cords = {}
-    cords.width = req.body.w
-    cords.height = req.body.h
-    cords.x = req.body.x
-    cords.y = req.body.y
-
-    if (!cords.width || !cords.height || cords.x === null || cords.y === null) {
-      return res.badRequest('Width, height, x and y params is required')
+    file.urls = {}
+    // set the original url for file upploads
+    file.urls.original = res.locals.getUrlFromFile('original', file)
+    // set temporary image styles
+    var styles = we.config.upload.image.styles
+    for (var sName in styles) {
+      file.urls[sName] = '/api/v1/image/' + sName + '/' + file.name
     }
 
-    var originalFile = we.db.models.image.getImagePath('original', res.locals.data.name)
+    file.description = req.body.description
+    file.label = req.body.label
+    file.mime = file.mimetype
 
-    we.log.verbose('resize image to:', cords)
+    // set storage name
+    file.storageName = res.locals.upload.storageName
+    file.isLocalStorage = res.locals.isLocalStorage
 
-    we.db.models.image
-    .resizeImageAndReturnSize(originalFile, cords, function (err, size) {
-      if (err) return res.serverError(err)
+    if (req.isAuthenticated()) file.creatorId = req.user.id
 
-      res.locals.data.width = size.width
-      res.locals.data.height = size.height
-
-      // save the new width and height on db
-      res.locals.data.save().then(function () {
-        we.log.verbose('result:', size.width, size.width)
-
-        // delete old auto generated image styles
-        we.db.models.image
-        .deleteImageStylesWithImageName(res.locals.data.name, function (err) {
-          if (err) {
-            we.log.error('Error on delete old image styles:', res.locals.data, err)
-            return res.send(500)
-          }
-
-          res.send({
-            image: res.locals.data
-          })
-        })
-      })
+    res.locals.Model.create(file)
+    .then(function afterCreate (record) {
+      if (record) we.log.debug('New image record created:', record.get())
+      return res.created(record)
     })
+    .catch(res.queryError)
   }
 }
