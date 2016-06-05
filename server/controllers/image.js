@@ -90,7 +90,7 @@ module.exports = {
         })
       } else {
         // TODO implemente get or sesize for external storages
-        res.redirect(image.urils.original)
+        res.redirect(image.urls.original)
       }
     })
     .catch(res.queryError)
