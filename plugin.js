@@ -393,16 +393,18 @@ module.exports = function loadPlugin (projectPath, Plugin) {
   // -- Events
   //
 
-  plugin.events.on('we:after:load:plugins', function (we) {
+  plugin.events.on('we:after:load:express', function (we) {
     // your code here ...
     if (!we.config.upload.defaultImageStorage) {
-      throw new Error('we-plugin-file: install a file storage plugin and configure the '+
+      console.log('we-plugin-file: install a file storage plugin and configure the '+
         'we.config.upload.defaultImageStorage with you storageStrategy')
+      process.exit()
     }
 
     if (!we.config.upload.defaultFileStorage) {
-      throw new Error('we-plugin-file: install a file storage plugin and configure the '+
+      console.log('we-plugin-file: install a file storage plugin and configure the '+
         'we.config.upload.defaultFileStorage with storageStrategy')
+      process.exit()
     }
   });
 

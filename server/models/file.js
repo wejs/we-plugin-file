@@ -69,15 +69,36 @@ module.exports = function FileModel (we) {
         }
       },
       extraData: {
-        type: we.db.Sequelize.BLOB
+        type: we.db.Sequelize.BLOB,
+        skipSanitizer: true,
+        get: function() {
+          var v = this.getDataValue('extraData')
+          if (!v) return {}
+
+          if (v instanceof Buffer) {
+            try {
+              return JSON.parse(v.toString('utf8'))
+            } catch (e) {
+              we.log.error('error on parse file extraData from db', e)
+              return {}
+            }
+          } else if (typeof v == 'string') {
+            return JSON.parse(v)
+          } else {
+            return v
+          }
+        },
+        set: function(v) {
+          if (!v) v = {}
+          if (typeof v != 'object')
+            throw new Error('file:extraData:need_be_object')
+
+          this.setDataValue('extraData', JSON.stringify(v))
+        }
       }
     },
     associations: {
       creator: { type: 'belongsTo', model: 'user' }
-    },
-    options: {
-      // table comment
-      comment: 'We.js file table'
     }
   }
 
