@@ -2,16 +2,10 @@
  * We.js we-pluginfile plugin settings
  */
 var multer = require('multer')
-var uuid = require('node-uuid')
-var mkdirp = require('mkdirp')
 
 module.exports = function loadPlugin (projectPath, Plugin) {
   var plugin = new Plugin(__dirname)
-
-  plugin.defaultFilename = function defaultFilename (req, file, cb) {
-    file.name = Date.now() + '_' + uuid.v1() + '.' + file.originalname.split('.').pop()
-    cb(null, file.name)
-  }
+  plugin.multer = multer
 
   var imageMimeTypes = [
     'image/png',
@@ -65,34 +59,11 @@ module.exports = function loadPlugin (projectPath, Plugin) {
       }
     },
     upload: {
-      storages: {
-        localImages: {
-          isLocalStorage: true,
-          getUrlFromFile: function (format, file) {
-            return '/api/v1/image/' + (format || 'original') + '/' + file.name
-          },
-          storage: multer.diskStorage({
-            destination: projectPath + '/files/uploads/images/original',
-            filename: plugin.defaultFilename
-          })
-        },
-        localFiles: {
-          isLocalStorage: true,
-          getUrlFromFile: function (format, file) {
-            return '/api/v1/file-download/' + file.name
-          },
-          storage: multer.diskStorage({
-            destination: projectPath + '/files/uploads/files',
-            filename: plugin.defaultFilename
-          })
-        }
-      },
+      defaultImageStorage: null,
+      defaultFileStorage: null,
 
-      file: {
-        uploadPath: projectPath + '/files/uploads/files'
-      },
+      file: {},
       image: {
-        uploadPath: projectPath + '/files/uploads/images',
         avaibleStyles: [ 'thumbnail', 'medium', 'large' ],
         styles: {
           thumbnail: { width: '75', heigth: '75' },
@@ -158,7 +129,8 @@ module.exports = function loadPlugin (projectPath, Plugin) {
       responseType: 'json',
       permission: 'upload_image',
       upload: {
-        storageName: 'localImages',
+        isImage: true,
+
         // limmit settings used in multer({ limits: '' })
         limits: {
           fieldNameSize: 150,
@@ -185,6 +157,13 @@ module.exports = function loadPlugin (projectPath, Plugin) {
         }]
       }
     },
+    'delete /api/v1/image/:name': {
+      controller: 'image',
+      action: 'destroy',
+      model: 'image',
+      responseType: 'json',
+      permission: 'delete_image'
+    },
     'get /api/v1/file/:id([0-9]+)': {
       controller: 'file',
       action: 'findOne',
@@ -206,7 +185,6 @@ module.exports = function loadPlugin (projectPath, Plugin) {
       responseType: 'json',
       permission: 'upload_file',
       upload: {
-        storageName: 'localFiles',
         isLocalStorage: true,
 
         limits: {
@@ -239,13 +217,19 @@ module.exports = function loadPlugin (projectPath, Plugin) {
         }
       }
     },
-
     'get /api/v1/:type(file|image)/get-form-modal-content': {
       controller: 'file',
       action: 'getFormModalContent',
       model: 'file',
       responseType: 'modal',
       permission: true
+    },
+    'delete /api/v1/file/:name': {
+      controller: 'file',
+      action: 'destroy',
+      model: 'file',
+      responseType: 'json',
+      permission: 'delete_file'
     }
   })
 
@@ -253,57 +237,181 @@ module.exports = function loadPlugin (projectPath, Plugin) {
   // - Plugin functions
   //
 
+  /**
+   * Get plugin uploader middleware
+   *
+   * @param  {Object} uploadConfigs options
+   * @return {Function}               Express middleware
+   */
   plugin.uploader = function getUploader (uploadConfigs) {
     return multer(uploadConfigs).fields(uploadConfigs.fields)
   }
 
+  /**
+   * Build and set upload middleware
+   *
+   * @param {Object} data {we: app, middlewares: middlewares, config: config}
+   */
   plugin.setUploadMiddleware = function setUploadMiddleware (data) {
-    // data = {we: app, middlewares: middlewares, config: config
     var we = data.we
     var config = data.config
     var middlewares = data.middlewares
+
     // bind upload  if have upload config and after ACL check
     if (config.upload) {
-      if (!config.upload.storage && config.upload.storageName) {
-        var storageStrategy = we.config.upload.storages[config.upload.storageName]
+      var storageName = config.upload.storageName
 
-        if (!storageStrategy || !storageStrategy.storage) {
-          throw new Error('we-plugin-file:storage not found in we.config.upload.storages: ' + config.upload.storageName)
+      if (!storageName) {
+       storageName = (config.upload.isImage)? we.config.upload.defaultImageStorage: we.config.upload.defaultFileStorage
+      }
+
+      if (!config.upload.storage && storageName) {
+        var storageStrategy = we.config.upload.storages[storageName]
+
+        if (
+          !storageStrategy ||
+          !storageStrategy.getStorage
+        ) {
+          throw new Error('we-plugin-file:storage not found in we.config.upload.storages: ' + storageName)
         }
 
         // storage.getUrlFromFile is required
         if (!storageStrategy.getUrlFromFile) {
           throw new Error('we-plugin-file:we.config.upload.storages["' +
-            config.upload.storageName +
+            storageName +
           '"].getUrlFromFile is required')
         }
 
-        config.upload.storage = storageStrategy.storage
-        config.isLocalStorage = storageStrategy.isLocalStorage
-        config.getUrlFromFile = storageStrategy.getUrlFromFile
+        config.upload.storage = storageStrategy.getStorage(we)
+        config.storageStrategy = storageStrategy
       }
 
       middlewares.push(plugin.uploader(config.upload))
     }
   }
 
-  plugin.createFileFolder = function createFileFolder (we, done) {
-    // create file upload path
-    mkdirp(we.config.upload.file.uploadPath, function (err) {
-      if (err) we.log.error('Error on create file upload path', err)
-    })
+  /**
+   * Get sequelize file field getter function
+   *
+   * @param  {String} fieldName
+   * @return {Function}
+   */
+  plugin.getFieldSetter = function getFieldSetter (fieldName) {
+    return function setFiles (val) {
+      if (plugin.we.utils._.isArray(val)) {
+        var newVal = []
+        // skip flags and invalid values
+        for (var i = 0; i < val.length; i++) {
+          if (val[i] && val[i] !== 'null') newVal.push(val[i])
+        }
+        this.setDataValue(fieldName, newVal)
+      } else if (val && val !== 'null') {
+        this.setDataValue(fieldName, [val])
+      } else {
+        this.setDataValue(fieldName, null)
+      }
+    }
+  }
 
+  /**
+   * Get sequelize file field setter function
+   *
+   * @param  {String} fieldName
+   * @return {Function}
+   */
+  plugin.getFieldGetter = function getFieldGetter (fieldName) {
+    return function getFiles () {
+      // return the value or a empty array
+      return this.getDataValue(fieldName) || []
+    }
+  }
+
+  /**
+   * Set one model file or image field
+   *
+   * @param {Object} model  we.db.models.[model]
+   * @param {String} name   field name
+   * @param {Object} opts   file field options
+   * @param {Object} we     we.js object
+   * @param {String} ffield form field type
+   */
+  plugin.setModelFileField = function setModelFileField (model, name, opts, we, ffield) {
+    if (model.definition[name]) {
+      we.log.verbose('Field already defined for file field:', name)
+      return
+    }
+
+    // set field configs
+    var cfgs = we.utils._.clone(opts)
+    cfgs.type = we.db.Sequelize.VIRTUAL
+    // set virtual setter
+    cfgs.set = plugin.getFieldSetter(name, cfgs)
+    // set virtual getter
+    cfgs.get = plugin.getFieldGetter(name, cfgs)
+    // set form field html
+    cfgs.formFieldType = ffield
+    //'file/file'
+    // set virtual fields for term fields if not exists
+    model.definition[name] = cfgs
+  }
+
+  plugin.setModelsFileField = function setModelsFileField (we, done) {
+    var f, models = we.db.modelsConfigs
+
+    for (var modelName in models) {
+      if (models[modelName].options) {
+        if (models[modelName].options.fileFields) {
+          // file fields
+          for (f in models[modelName].options.fileFields) {
+            plugin.setModelFileField (
+              models[modelName],
+              f,
+              models[modelName].options.fileFields[f],
+              we,
+              'file/file'
+            )
+          }
+        }
+
+        if (models[modelName].options.imageFields) {
+          for (f in models[modelName].options.imageFields) {
+            plugin.setModelFileField (
+              models[modelName],
+              f,
+              models[modelName].options.imageFields[f],
+              we,
+              'file/image'
+            )
+          }
+        }
+      }
+    }
     done()
   }
 
   //
   // -- Events
   //
+
+  plugin.events.on('we:after:load:plugins', function (we) {
+    // your code here ...
+    if (!we.config.upload.defaultImageStorage) {
+      throw new Error('we-plugin-file: install a file storage plugin and configure the '+
+        'we.config.upload.defaultImageStorage with you storageStrategy')
+    }
+
+    if (!we.config.upload.defaultFileStorage) {
+      throw new Error('we-plugin-file: install a file storage plugin and configure the '+
+        'we.config.upload.defaultFileStorage with storageStrategy')
+    }
+  });
+
   plugin.events.on('router:before:set:controller:middleware', plugin.setUploadMiddleware)
-  plugin.hooks.on('we:create:default:folders', plugin.createFileFolder)
+  plugin.hooks.on('we:models:before:instance', plugin.setModelsFileField)
 
   //
   // - Plugin assets
+  // - Only works if we-plugin-view is installed
   //
 
   plugin.addJs('we.component.imageSelector', {

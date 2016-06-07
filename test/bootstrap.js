@@ -32,26 +32,29 @@ before(function(callback) {
 
 //after all tests
 after(function (callback) {
-  we.db.defaultConnection.close();
+  testTools.helpers.resetDatabase(we, function(err) {
+    if(err) return callback(err);
 
-  var tempFolders = [
-    projectPath + '/files/tmp',
-    projectPath + '/files/config',
-    projectPath + '/files/sqlite',
-    projectPath + '/files/public/min',
-    projectPath + '/files/public/tpls.hbs.js',
-    projectPath + '/files/public/admin.tpls.hbs.js',
-    projectPath + '/files/public/project.css',
-    projectPath + '/files/public/project.js',
-    projectPath + '/config/local.js',
-    // projectPath + '/files/wejsdoc'
-  ];
+    we.db.defaultConnection.close();
 
-  we.utils.async.each(tempFolders, function(folder, next){
-    deleteDir( folder, next);
-  }, function(err) {
-    if (err) throw new Error(err);
-    callback();
-  })
+    var tempFolders = [
+      projectPath + '/files/tmp',
+      projectPath + '/files/config',
+      projectPath + '/files/sqlite',
+      projectPath + '/files/public/min',
+      projectPath + '/files/public/tpls.hbs.js',
+      projectPath + '/files/public/admin.tpls.hbs.js',
+      projectPath + '/files/public/project.css',
+      projectPath + '/files/public/project.js',
+      projectPath + '/config/local.js',
+      // projectPath + '/files/wejsdoc'
+    ];
 
+    we.utils.async.each(tempFolders, function(folder, next){
+      deleteDir( folder, next);
+    }, function(err) {
+      if (err) throw new Error(err);
+      callback();
+    })
+ })
 });

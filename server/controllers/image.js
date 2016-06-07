@@ -35,7 +35,7 @@ module.exports = {
       return res.badRequest('image:findOne: fileName is required')
     }
 
-    var avaibleImageStyles = we.db.models.image.getImageStyles()
+    var avaibleImageStyles = we.config.upload.image.avaibleStyles
 
     var imageStyle = req.params.style
     if (!imageStyle) {
@@ -58,40 +58,11 @@ module.exports = {
 
       we.log.silly('image:findOne: image found:', image.get())
 
-      if (image.isLocalStorage) {
-        // is local storage ... get or resize
-        return we.db.models.image
-        .getFileStreamOrResize(fileName, imageStyle, function (err, stream) {
-          if (err) {
-            we.log.error('Error on getFileStreamOrResize:', fileName, err)
-            return res.serverError(err)
-          }
+      var storage = we.config.upload.storages[image.storageName];
 
-          if (!stream) return res.notFound()
+      if (!storage) return res.serverError('we-plugin-file:findOne:storage:not_found')
 
-          if (image.mime) {
-            res.contentType(image.mime)
-          } else {
-            res.contentType('image/png')
-          }
-
-          // set http cache headers
-          if (!res.getHeader('Cache-Control')) {
-            res.setHeader('Cache-Control', 'public, max-age=' + we.config.cache.maxage)
-          }
-
-          res.setHeader('Last-Modified', (new Date(image.updatedAt)).toUTCString())
-
-          stream.pipe(res)
-
-          stream.on('error', function (err) {
-            we.log.error('image:findOne: error in send file', err)
-          })
-        })
-      } else {
-        // TODO implemente get or sesize for external storages
-        res.redirect(image.urls.original)
-      }
+      storage.sendFile(image, req, res, imageStyle)
     })
     .catch(res.queryError)
   },
@@ -146,7 +117,7 @@ module.exports = {
 
     file.urls = {}
     // set the original url for file upploads
-    file.urls.original = res.locals.getUrlFromFile('original', file)
+    file.urls.original = res.locals.storageStrategy.getUrlFromFile('original', file)
     // set temporary image styles
     var styles = we.config.upload.image.styles
     for (var sName in styles) {
@@ -158,15 +129,44 @@ module.exports = {
     file.mime = file.mimetype
 
     // set storage name
-    file.storageName = res.locals.upload.storageName
-    file.isLocalStorage = res.locals.isLocalStorage
+    file.storageName = (res.locals.upload.storageName || we.config.upload.defaultImageStorage)
+
+    file.isLocalStorage = res.locals.storageStrategy.isLocalStorage
 
     if (req.isAuthenticated()) file.creatorId = req.user.id
 
-    res.locals.Model.create(file)
-    .then(function afterCreate (record) {
-      if (record) we.log.debug('New image record created:', record.get())
-      return res.created(record)
+    res.locals.storageStrategy
+    .generateImageStyles(file, function (err) {
+      if (err) return res.serverError(err);
+
+      res.locals.Model.create(file)
+      .then(function afterCreate (record) {
+        if (record) we.log.debug('New image record created:', record.get())
+        return res.created(record)
+      })
+      .catch(res.queryError)
+    })
+  },
+
+  destroy: function destroyFile (req, res) {
+    var we = req.we
+
+    we.db.models.image.findOne({
+      where: { name: req.params.name }
+    })
+    .then(function afterDelete(record) {
+      if (!record) return res.notFound()
+
+      res.locals.deleted = true;
+
+      var storage = we.config.upload.storages[record.storageName];
+      if (!storage) return res.serverError('we-plugin-file:delete:storage:not_found')
+
+      storage.destroyFile(record, function afterDeleteFile(err) {
+        if (err) return res.serverError(err)
+        return res.deleted()
+      })
+
     })
     .catch(res.queryError)
   }

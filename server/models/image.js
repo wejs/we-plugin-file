@@ -4,9 +4,6 @@
  * @module      :: Model
  *
  */
-var fs = require('fs')
-var gm = require('gm')
-var mkdirp = require('mkdirp')
 
 module.exports = function ImageModel (we) {
   var _ = we.utils._
@@ -45,7 +42,32 @@ module.exports = function ImageModel (we) {
 
       urls: {
         type: we.db.Sequelize.BLOB,
-        allowNull: false
+        allowNull: false,
+        skipSanitizer: true,
+        get: function() {
+          var v = this.getDataValue('urls')
+          if (!v) return {}
+
+          if (v instanceof Buffer) {
+            try {
+              return JSON.parse(v.toString('utf8'))
+            } catch (e) {
+              we.log.error('error on parse file urls from db', e)
+              return {}
+            }
+          } else if (typeof v == 'string') {
+            return JSON.parse(v)
+          } else {
+            return v
+          }
+        },
+        set: function(v) {
+          if (!v) v = {}
+          if (typeof v != 'object')
+            throw new Error('file:urls:need_be_object')
+
+          this.setDataValue('urls', JSON.stringify(v))
+        }
       },
 
       extraData: {
@@ -57,198 +79,9 @@ module.exports = function ImageModel (we) {
     },
     options: {
       // table comment
-      comment: 'We.js image table',
-
-      classMethods: {
-        getStyleUrlFromImage: function (image) {
-          return {
-            original: we.config.hostname + '/api/v1/image/original/' + image.name,
-            thumbnail: we.config.hostname + '/api/v1/image/thumbnail/' + image.name,
-            mini: we.config.hostname + '/api/v1/image/mini/' + image.name,
-            medium: we.config.hostname + '/api/v1/image/medium/' + image.name,
-            large: we.config.hostname + '/api/v1/image/large/' + image.name
-          }
-        },
-
-        /**
-         * Get image styles
-         *
-         * @return {object} avaible image styles
-         */
-        getImageStyles: function getImageStyles () {
-          return we.config.upload.image.avaibleStyles
-        },
-
-        getImagePath: function getImagePath (imageStyle, fileName) {
-          if (!imageStyle) imageStyle = 'original'
-          return we.config.upload.image.uploadPath + '/' + imageStyle + '/' + fileName
-        },
-
-        /**
-         * Get file stream of resize
-         *
-         * @param  {String}   fileName
-         * @param  {String}   imageStyle
-         * @param  {Function} callback
-         */
-        getFileStreamOrResize: function getFileStreamOrResize (fileName, imageStyle, callback) {
-          var path = we.db.models.image.getImagePath(imageStyle, fileName)
-          // check if file exists with fs.stat
-          fs.stat(path, function afterCheckIfFileExists (err) {
-            if (err) {
-              if (err.code !== 'ENOENT' || imageStyle === 'original') {
-                return callback(err)
-              }
-              we.db.models.image
-              .resizeImage(fileName, imageStyle, function afterResizeImage (err) {
-                if (err) return callback(err)
-                // fs.readFile(path, function (err, contents) {
-                callback(null, fs.ReadStream(path))
-                // });
-              })
-            } else {
-              callback(null, fs.ReadStream(path))
-            }
-          })
-        },
-        /**
-         * Resize one image to fit image style size
-         *
-         * @param  {String}   fileName
-         * @param  {String}   imageStyle
-         * @param  {Function} cb         callback
-         */
-        resizeImage: function resizeImage (fileName, imageStyle, cb) {
-          var originalFile = we.db.models.image.getImagePath('original', fileName)
-          var newImagePath = we.db.models.image.getImagePath(imageStyle, fileName)
-
-          var width = we.config.upload.image.styles[imageStyle].width
-          var height = we.config.upload.image.styles[imageStyle].heigth
-
-          // resize, center and crop to fit size
-          gm(originalFile)
-          .resize(width, height, '^')
-          .gravity('Center')
-          .crop(width, height)
-          .write(newImagePath, cb)
-        },
-
-        /**
-         * Resize one image in server and retur size
-         *
-         * @param  {strinh}   originalFile
-         * @param  {object}   cords
-         * @param  {Function} cb           callback
-         */
-        resizeImageAndReturnSize: function (originalFile, cords, cb) {
-          gm(originalFile).crop(cords.width, cords.height, cords.x, cords.y)
-          .write(originalFile, function (err) {
-            if (err) {
-              we.log.error('Error on crop file:', originalFile, cords, err)
-              return cb(err)
-            }
-            // get image size
-            gm(originalFile).size(function (err, size) {
-              if (err) return cb(err)
-              return cb(null, size)
-            })
-          })
-        },
-
-        /**
-         * Delete old image styles for one image
-         * @param  {string}   imageName
-         * @param  {Function} callback
-         */
-        deleteImageStylesWithImageName: function (imageName, callback) {
-          var imageStyles = we.db.models.image.getImageStyles()
-          async.each(imageStyles, function (style, next) {
-            var path = we.db.models.image.getImagePath(style, imageName)
-            fs.exists(path, function (exists) {
-              we.log.verbose(path, exists)
-              if (exists) {
-                fs.unlink(path, function (err) {
-                  if (err) throw err
-                  next()
-                })
-              } else {
-                next()
-              }
-            })
-          }, callback)
-        }
-      },
-
-      instanceMethods: {
-        // toJSON: function () {
-        //   var obj = this.get()
-        //   obj.urls = we.db.models.image.getStyleUrlFromImage(obj)
-        //   return obj
-        // },
-        getImagePath: function (imageStyle) {
-          return we.db.models.image.getImagePath(imageStyle, this.name)
-        }
-      }
+      comment: 'We.js image table'
     }
   }
-
-  we.hooks.on('we:create:default:folders', function (we, done) {
-    // create image upload path
-    mkdirp(we.config.upload.image.uploadPath, function (err) {
-      if (err) we.log.error('Error on create image upload path', err)
-
-      var imageStyles = we.db.models.image.getImageStyles()
-
-      async.each(imageStyles, function (style, next) {
-        var imageDir = we.config.upload.image.uploadPath + '/' + style
-        fs.lstat(imageDir, function (err) {
-          if (err) {
-            if (err.code === 'ENOENT') {
-              we.log.info('Creating the image upload directory: ' + imageDir)
-              return mkdirp(imageDir, function (err) {
-                if (err) we.log.error('Error on create upload path', err)
-                return next()
-              })
-            }
-            we.log.error('Error on create image dir: ', imageDir)
-            return next(err)
-          } else {
-            next()
-          }
-        })
-      }, done)
-    })
-  })
-
-  // use before instance to set sequelize virtual fields for term fields
-  we.hooks.on('we:models:before:instance', function (we, done) {
-    var f, cfgs
-    var models = we.db.modelsConfigs
-
-    for (var modelName in models) {
-      if (models[modelName].options && models[modelName].options.imageFields) {
-        for (f in models[modelName].options.imageFields) {
-          if (models[modelName].definition[f]) {
-            we.log.verbose('Field already defined for image field:', f)
-            continue
-          }
-          // set field configs
-          cfgs = _.clone(models[modelName].options.imageFields[f])
-          cfgs.type = we.db.Sequelize.VIRTUAL
-          // set virtual setter
-          cfgs.set = getFieldSetter(f, cfgs)
-          // set virtual getter
-          cfgs.get = getFieldGetter(f, cfgs)
-          // set form field html
-          cfgs.formFieldType = 'file/image'
-          // set virtual fields for term fields if not exists
-          models[modelName].definition[f] = cfgs
-        }
-      }
-    }
-
-    done()
-  })
 
    // after define all models add image field hooks in models how have images
   we.hooks.on('we:models:set:joins', function (we, done) {
@@ -491,42 +324,6 @@ module.exports = function ImageModel (we) {
       .catch(done)
     }
   })
-
-  /**
-   * Get sequelize image field getter function
-   *
-   * @param  {String} fieldName
-   * @return {Function}
-   */
-  function getFieldSetter (fieldName) {
-    return function setImages (val) {
-      if (_.isArray(val)) {
-        var newVal = []
-        // skip flags and invalid values
-        for (var i = 0; i < val.length; i++) {
-          if (val[i] && val[i] !== 'null') newVal.push(val[i])
-        }
-        this.setDataValue(fieldName, newVal)
-      } else if (val && val !== 'null') {
-        this.setDataValue(fieldName, [val])
-      } else {
-        this.setDataValue(fieldName, null)
-      }
-    }
-  }
-
-  /**
-   * Get sequelize image field setter function
-   *
-   * @param  {String} fieldName
-   * @return {Function}
-   */
-  function getFieldGetter (fieldName) {
-    return function getImages () {
-      // return the value or a empty array
-      return this.getDataValue(fieldName) || []
-    }
-  }
 
   return model
 }

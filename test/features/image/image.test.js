@@ -1,10 +1,11 @@
-var assert = require('assert');
-var request = require('supertest');
-var helpers = require('we-test-tools').helpers;
-var stubs = require('we-test-tools').stubs;
-var http;
-var we, _;
-var db;
+var assert = require('assert')
+var request = require('supertest')
+var helpers = require('we-test-tools').helpers
+var stubs = require('we-test-tools').stubs
+var fs = require('fs')
+var http
+var we, _
+var db
 
 describe('imageFeature', function () {
   var salvedImage;
@@ -102,8 +103,42 @@ describe('imageFeature', function () {
       });
     });
   });
-
   describe('remove', function () {
-    it('delete /api/v1/image/:name should delete one image file');
+    it('delete /api/v1/image/:name should delete one file', function (done) {
+      this.slow(300)
+      var salvedFile
+
+      request(http)
+      .post('/api/v1/image')
+      .attach('image', stubs.getImageFilePath())
+      .expect(201)
+      .end(function (err, res) {
+        if (err) {
+          console.log('res.text>', res.text)
+          throw err;
+        }
+        salvedFile = res.body.image;
+
+        request(http)
+        .delete('/api/v1/image/'+salvedFile.name)
+        .expect(204)
+        .end(function (err, res) {
+          if (err) {
+            console.log('res.text>', res.text)
+            throw err;
+          }
+
+          var storage = we.config.upload.storages[salvedFile.storageName];
+
+          var path = storage.getPath(salvedFile.style, salvedFile.name)
+
+          fs.exists(path, function afterCheckIfFileExists(exists) {
+            assert(!exists)
+
+            done();
+          })
+        });
+      });
+    });
   });
 });

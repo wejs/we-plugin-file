@@ -41,7 +41,32 @@ module.exports = function FileModel (we) {
 
       urls: {
         type: we.db.Sequelize.BLOB,
-        allowNull: false
+        allowNull: false,
+        skipSanitizer: true,
+        get: function() {
+          var v = this.getDataValue('urls')
+          if (!v) return {}
+
+          if (v instanceof Buffer) {
+            try {
+              return JSON.parse(v.toString('utf8'))
+            } catch (e) {
+              we.log.error('error on parse file urls from db', e)
+              return {}
+            }
+          } else if (typeof v == 'string') {
+            return JSON.parse(v)
+          } else {
+            return v
+          }
+        },
+        set: function(v) {
+          if (!v) v = {}
+          if (typeof v != 'object')
+            throw new Error('file:urls:need_be_object')
+
+          this.setDataValue('urls', JSON.stringify(v))
+        }
       },
       extraData: {
         type: we.db.Sequelize.BLOB
@@ -52,56 +77,10 @@ module.exports = function FileModel (we) {
     },
     options: {
       // table comment
-      comment: 'We.js file table',
-
-      classMethods: {
-        /**
-         * Get internal file path, only works for local storages
-         *
-         * @param  {String} fileName
-         * @return {String}
-         */
-        getFilePath: function getFilePath (fileName) {
-          return we.config.upload.file.uploadPath + '/' + fileName
-        }
-      },
-
-      instanceMethods: {
-        getFilePath: function getFilePath () {
-          return we.db.models.file.getFilePath(this.name)
-        }
-      }
+      comment: 'We.js file table'
     }
   }
 
-  // use before instance to set sequelize virtual fields for term fields
-  we.hooks.on('we:models:before:instance', function (we, done) {
-    var f, cfgs
-    var models = we.db.modelsConfigs
-
-    for (var modelName in models) {
-      if (models[modelName].options && models[modelName].options.fileFields) {
-        for (f in models[modelName].options.fileFields) {
-          if (models[modelName].definition[f]) {
-            we.log.verbose('Field already defined for file field:', f)
-            continue
-          }
-          // set field configs
-          cfgs = _.clone(models[modelName].options.fileFields[f])
-          cfgs.type = we.db.Sequelize.VIRTUAL
-          // set virtual setter
-          cfgs.set = getFieldSetter(f, cfgs)
-          // set virtual getter
-          cfgs.get = getFieldGetter(f, cfgs)
-          // set form field html
-          cfgs.formFieldType = 'file/file'
-          // set virtual fields for term fields if not exists
-          models[modelName].definition[f] = cfgs
-        }
-      }
-    }
-    done()
-  })
    // after define all models add term field hooks in models how have terms
   we.hooks.on('we:models:set:joins', function (we, done) {
     var models = we.db.models
@@ -351,39 +330,5 @@ module.exports = function FileModel (we) {
     }
   })
 
-  /**
-   * Get sequelize file field getter function
-   *
-   * @param  {String} fieldName
-   * @return {Function}
-   */
-  function getFieldSetter (fieldName) {
-    return function setFiles (val) {
-      if (_.isArray(val)) {
-        var newVal = []
-        // skip flags and invalid values
-        for (var i = 0; i < val.length; i++) {
-          if (val[i] && val[i] !== 'null') newVal.push(val[i])
-        }
-        this.setDataValue(fieldName, newVal)
-      } else if (val && val !== 'null') {
-        this.setDataValue(fieldName, [val])
-      } else {
-        this.setDataValue(fieldName, null)
-      }
-    }
-  }
-  /**
-   * Get sequelize file field setter function
-   *
-   * @param  {String} fieldName
-   * @return {Function}
-   */
-  function getFieldGetter (fieldName) {
-    return function getFiles () {
-      // return the value or a empty array
-      return this.getDataValue(fieldName) || []
-    }
-  }
   return model
 }
