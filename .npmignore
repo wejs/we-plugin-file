@@ -6,3 +6,5 @@ test
 .gitignore
 *.sql
 *.log
+files/uploads
+config
