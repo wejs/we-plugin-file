@@ -5,12 +5,12 @@
   <label for="{{fieldId}}">{{t fieldName}} {{#ifCond field.allowNull false}}*{{/ifCond}}</label>
 
   <button id="{{fieldId}}FileBTNSelector"
-          type="button"
-          onclick="we.components.fileSelector.selectFileForField('#{{fieldId}}', '{{name}}');"
-          class="btn btn-default"
-          {{#unless field.formFieldMultiple}}
-            {{#ifCond value 'null'}}{{else}}{{#if value}}style="display:none;"{{/if}}{{/ifCond}}
-          {{/unless}} >
+      type="button"
+      onclick="we.components.fileSelector.selectFileForField('#{{fieldId}}', '{{name}}');"
+      class="btn btn-default"
+      {{#unless field.formFieldMultiple}}
+        {{#ifCond value 'null'}}{{else}}{{#if value}}style="display:none;"{{/if}}{{/ifCond}}
+      {{/unless}} >
     {{t 'file.file.select.btn'}}
   </button>
 

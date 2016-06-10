@@ -4,17 +4,20 @@
 
   <label for="{{fieldId}}">{{t fieldName}} {{#ifCond field.allowNull false}}*{{/ifCond}}</label>
 
-  <we-image-selector-btn >{{t 'file.image.select.btn'}}</we-image-selector-btn>
+  <we-image-selector-btn
+    id="{{fieldId}}ImageBTNSelector"
+    data-fieldid="{{fieldId}}"
+    data-name="{{name}}"
 
-  <button id="{{fieldId}}ImageBTNSelector"
-          type="button"
-          onclick="we.components.imageSelector.selectImageForField('#{{fieldId}}', '{{name}}');"
-          class="btn btn-default"
-          {{#unless field.formFieldMultiple}}
-            {{#ifCond value 'null'}}{{else}}{{#if value}}style="display:none;"{{/if}}{{/ifCond}}
-          {{/unless}} >
+    {{#unless field.formFieldMultiple}}
+      {{#ifCond value 'null'}}{{else}}{{#if value}}style="display:none;"{{/if}}{{/ifCond}}
+    {{/unless}}
+
+    class="btn btn-default"
+  >
     {{t 'file.image.select.btn'}}
-  </button>
+  </we-image-selector-btn>
+
   {{!-- Magic field to run the image field updater --}}
   <input name="{{name}}" type="hidden" value="null">
 
