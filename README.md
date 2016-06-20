@@ -1,11 +1,11 @@
 # We.js File plugin
 
-> Upload files to server!
+Upload files to server!
 
 ## Installation:
 
 ```sh
-npm install we-plugin-file --save
+we i we-plugin-file
 ```
 
 ## Features
@@ -37,4 +37,4 @@ See: https://github.com/wejs/we-plugin-file/blob/master/plugin.js#L73
 
 ## License
 
-MIT
+Under [the MIT license](https://github.com/wejs/we/blob/master/LICENSE.md).

@@ -2,12 +2,12 @@
   "name": "we-plugin-file",
   "description": "We.js file plugin with suport to storages",
   "version": "1.2.2",
+  "main": "plugin.js",
   "dependencies": {
     "multer": "1.1.0",
     "mv": "^2.1.1",
     "string": "^3.3.1"
   },
-  "main": "plugin.js",
   "scripts": {
     "test": "NODE_ENV=test LOG_LV=info ./node_modules/.bin/mocha test/bootstrap.js test/**/*.test.js -b ",
     "verbose-test": "NODE_ENV=test LOG_LV=verbose ./node_modules/.bin/mocha test/bootstrap.js test/**/*.test.js -b ",
@@ -24,10 +24,14 @@
     "rimraf": "^2.5.2",
     "sinon": "^1.17.4",
     "supertest": "^1.2.0",
-    "we-core": "^1.4.3",
-    "we-plugin-acl": "^1.0.0",
-    "we-plugin-user": "^1.0.0",
-    "we-test-tools": "^0.3.17"
+    "we-core": "wejs/we-core",
+    "we-plugin-acl": "wejs/we-plugin-acl",
+    "we-plugin-user": "wejs/we-plugin-user",
+    "we-test-tools": "wejs/we-test-tools"
   },
-  "repository": "wejs/we-plugin-file"
+  "repository": "wejs/we-plugin-file",
+  "keywords": [
+    "wejs-plugin"
+  ],
+  "wejs": {}
 }
