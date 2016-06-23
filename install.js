@@ -48,6 +48,59 @@ module.exports = {
           }
         ], done);
       }
+    },
+    {
+      version: '1.3.1',
+      update: function (we, done) {
+        var imageStrategy = we.config.upload.storages.localImages;
+        var fileStrategy = we.config.upload.storages.localFiles;
+        var styles = we.config.upload.image.styles;
+
+        we.utils.async.series([
+          function (done) {
+            we.db.models.image.findAll({
+              where: {
+                storageName: null
+              },
+              raw: true
+            })
+            .then(function (r) {
+              we.utils.async.eachSeries(r, function (file, next) {
+                file.storageName = 'localImages';
+                file.urls = {
+                  original: imageStrategy.getUrlFromFile('original', file)
+                }
+
+                for (var sName in styles) {
+                  file.urls[sName] = '/api/v1/image/' + sName + '/' + file.name
+                }
+
+                file.save().nodeify(next);
+              }, done)
+            })
+            .catch(done)
+          },
+          function (done) {
+            we.db.models.file.findAll({
+              where: {
+                storageName: null
+              },
+              raw: true
+            })
+            .then(function (r) {
+              we.utils.async.eachSeries(r, function (file, next) {
+                file.storageName = 'localFiles';
+                file.urls = {
+                  original: fileStrategy.getUrlFromFile('original', file)
+                }
+
+                file.save().nodeify(next);
+              }, done)
+            })
+            .catch(done)
+          }
+        ], done)
+      }
     }
     ];
   }
