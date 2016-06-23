@@ -66,13 +66,15 @@ module.exports = {
             .then(function (r) {
               we.utils.async.eachSeries(r, function (file, next) {
                 file.storageName = 'localImages';
-                file.urls = {
+                var urls = {
                   original: imageStrategy.getUrlFromFile('original', file)
                 }
 
                 for (var sName in styles) {
-                  file.urls[sName] = '/api/v1/image/' + sName + '/' + file.name
+                  urls[sName] = '/api/v1/image/' + sName + '/' + file.name
                 }
+
+                file.urls = urls;
 
                 file.save().nodeify(next);
               }, done)
