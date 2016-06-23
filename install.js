@@ -61,8 +61,7 @@ module.exports = {
             we.db.models.image.findAll({
               where: {
                 storageName: null
-              },
-              raw: true
+              }
             })
             .then(function (r) {
               we.utils.async.eachSeries(r, function (file, next) {
@@ -84,8 +83,7 @@ module.exports = {
             we.db.models.file.findAll({
               where: {
                 storageName: null
-              },
-              raw: true
+              }
             })
             .then(function (r) {
               we.utils.async.eachSeries(r, function (file, next) {
