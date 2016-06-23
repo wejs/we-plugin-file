@@ -121,7 +121,7 @@ module.exports = {
     // set temporary image styles
     var styles = we.config.upload.image.styles
     for (var sName in styles) {
-      file.urls[sName] = '/api/v1/image/' + sName + '/' + file.name
+      file.urls[sName] = we.config.hostname+'/api/v1/image/' + sName + '/' + file.name
     }
 
     file.description = req.body.description
