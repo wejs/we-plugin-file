@@ -59,8 +59,8 @@ module.exports = function loadPlugin (projectPath, Plugin) {
       }
     },
     upload: {
-      defaultImageStorage: null,
-      defaultFileStorage: null,
+      // defaultImageStorage: null,
+      // defaultFileStorage: null,
 
       file: {},
       image: {
@@ -272,14 +272,16 @@ module.exports = function loadPlugin (projectPath, Plugin) {
           !storageStrategy ||
           !storageStrategy.getStorage
         ) {
-          throw new Error('we-plugin-file:storage not found in we.config.upload.storages: ' + storageName)
+          we.log.warn('we-plugin-file:storage not found in we.config.upload.storages: ' + storageName)
+          return;
         }
 
         // storage.getUrlFromFile is required
         if (!storageStrategy.getUrlFromFile) {
-          throw new Error('we-plugin-file:we.config.upload.storages["' +
+          we.log.warn('we-plugin-file:we.config.upload.storages["' +
             storageName +
           '"].getUrlFromFile is required')
+          return;
         }
 
         config.upload.storage = storageStrategy.getStorage(we)
@@ -396,15 +398,15 @@ module.exports = function loadPlugin (projectPath, Plugin) {
   plugin.events.on('we:after:load:express', function (we) {
     // your code here ...
     if (!we.config.upload.defaultImageStorage) {
-      console.log('we-plugin-file: install a file storage plugin and configure the '+
+      we.log.warn('we-plugin-file: install a file storage plugin and configure the '+
         'we.config.upload.defaultImageStorage with you storageStrategy')
-      process.exit()
+      return;
     }
 
     if (!we.config.upload.defaultFileStorage) {
-      console.log('we-plugin-file: install a file storage plugin and configure the '+
+      we.log.warn('we-plugin-file: install a file storage plugin and configure the '+
         'we.config.upload.defaultFileStorage with storageStrategy')
-      process.exit()
+      return;
     }
   });
 

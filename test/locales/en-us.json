@@ -5,5 +5,6 @@
 	"response.forbidden.title": "response.forbidden.title",
 	"ER_BAD_FIELD_ERROR: Unknown column 'creator.roles' in 'field list'": "ER_BAD_FIELD_ERROR: Unknown column 'creator.roles' in 'field list'",
 	"name cannot be null": "name cannot be null",
-	"response.notFound.title": "response.notFound.title"
+	"response.notFound.title": "response.notFound.title",
+	"name must be unique": "name must be unique"
 }
