@@ -32,6 +32,8 @@ module.exports = {
     .then(function afterCreateAndUpload (record) {
       we.log.debug('New file record created:', record.get())
       res.created(record)
+
+      return null
     })
     .catch(res.queryError)
   },
@@ -66,6 +68,8 @@ module.exports = {
       if (!storage) return res.serverError('we-plugin-file:findOne:storage:not_found')
 
       storage.sendFile(file, req, res)
+
+      return null
     })
     .catch(res.queryError)
   },
@@ -85,7 +89,7 @@ module.exports = {
     we.db.models.file.findOne({
       where: { name: req.params.name }
     })
-    .then(function afterDelete(record) {
+    .then(function afterDelete (record) {
       if (!record) return res.notFound()
 
       res.locals.deleted = true;
@@ -98,6 +102,7 @@ module.exports = {
         return res.deleted()
       })
 
+      return null
     })
     .catch(res.queryError)
   }

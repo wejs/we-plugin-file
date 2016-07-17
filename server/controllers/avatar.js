@@ -59,6 +59,8 @@ module.exports = {
           res.send(contents)
         })
       }
+
+      return null
     })
   },
 
@@ -74,7 +76,10 @@ module.exports = {
       where: {
         id: imageId
       }
-    }).then(function (image) {
+    })
+    .nodeify(function (err, image) {
+      if (err) return res.queryError(err)
+
       we.log.warn(image.get(), req.user.id)
 
       if (!image || req.user.id !== image.creatorId) {
@@ -92,7 +97,10 @@ module.exports = {
         res.send({
           'user': req.user
         })
+
+        return null
       })
+      .catch(res.queryError)
     })
   }
 }

@@ -21,7 +21,9 @@ module.exports = {
     .then(function afterFindAll (record) {
       res.locals.metadata.count = record.count
       res.locals.data = record.rows
-      return res.ok()
+      res.ok()
+
+      return null
     })
     .catch(res.queryError)
   },
@@ -63,6 +65,8 @@ module.exports = {
       if (!storage) return res.serverError('we-plugin-file:findOne:storage:not_found')
 
       storage.sendFile(image, req, res, imageStyle)
+
+      return null
     })
     .catch(res.queryError)
   },
@@ -89,6 +93,8 @@ module.exports = {
       res.send({
         image: image
       })
+
+      return null
     })
     .catch(function (err) {
       we.log.error('Error on get image from BD: ', err, fileId)
@@ -142,7 +148,9 @@ module.exports = {
       res.locals.Model.create(file)
       .then(function afterCreate (record) {
         if (record) we.log.debug('New image record created:', record.get())
-        return res.created(record)
+        res.created(record)
+
+        return null
       })
       .catch(res.queryError)
     })
@@ -154,10 +162,10 @@ module.exports = {
     we.db.models.image.findOne({
       where: { name: req.params.name }
     })
-    .then(function afterDelete(record) {
+    .then(function afterDelete (record) {
       if (!record) return res.notFound()
 
-      res.locals.deleted = true;
+      res.locals.deleted = true
 
       var storage = we.config.upload.storages[record.storageName];
       if (!storage) return res.serverError('we-plugin-file:delete:storage:not_found')
@@ -167,6 +175,7 @@ module.exports = {
         return res.deleted()
       })
 
+      return null
     })
     .catch(res.queryError)
   }
