@@ -2,6 +2,7 @@
  * We.js we-pluginfile plugin settings
  */
 var multer = require('multer')
+var path = require('path')
 
 module.exports = function loadPlugin (projectPath, Plugin) {
   var plugin = new Plugin(__dirname)
@@ -19,6 +20,7 @@ module.exports = function loadPlugin (projectPath, Plugin) {
 
   // set plugin configs
   plugin.setConfigs({
+    defaultUserAvatar: path.resolve(__dirname, 'files/public/avatar.png'),
     permissions: {
       'find_image': {
         'title': 'Find image',
