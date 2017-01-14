@@ -1,6 +1,6 @@
 # We.js File plugin
 
-Upload files to server!
+Upload files to server with support to file storage plugin extensions.
 
 ## Installation:
 
