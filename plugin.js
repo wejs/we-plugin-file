@@ -4,7 +4,7 @@
 const multer = require('multer'),
   path = require('path');
 
-module.exports = function loadPlugin (projectPath, Plugin) {
+module.exports = function loadPlugin (pp, Plugin) {
   const plugin = new Plugin(__dirname);
 
   plugin.multer = multer;
@@ -235,6 +235,30 @@ module.exports = function loadPlugin (projectPath, Plugin) {
       permission: 'delete_file'
     }
   })
+
+  /**
+   * Plugin fast loader for speed up we.js projeto bootstrap
+   *
+   * @param  {Object}   we
+   * @param {Function} done    callback
+   */
+  plugin.fastLoader = function fastLoader(we, done) {
+
+    // - Controllers:
+
+    we.controllers.avatar = new we.class.Controller(require(pp+'/server/controllers/avatar.js'));
+    we.controllers.file = new we.class.Controller(require(pp+'/server/controllers/file.js'));
+    we.controllers.image = new we.class.Controller(require(pp+'/server/controllers/image.js'));
+
+    // - Models
+
+    we.db.modelsConfigs.file = require(pp+'/server/models/file.js')(we);
+    we.db.modelsConfigs.fileassoc = require(pp+'/server/models/fileassoc.js')(we);
+    we.db.modelsConfigs.image = require(pp+'/server/models/image.js')(we);
+    we.db.modelsConfigs.imageassoc = require(pp+'/server/models/imageassoc.js')(we);
+
+    done();
+  }
 
   //
   // - Plugin functions
