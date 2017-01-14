@@ -1,14 +1,15 @@
 /**
  * We.js we-pluginfile plugin settings
  */
-var multer = require('multer')
-var path = require('path')
+const multer = require('multer'),
+  path = require('path');
 
 module.exports = function loadPlugin (projectPath, Plugin) {
-  var plugin = new Plugin(__dirname)
-  plugin.multer = multer
+  const plugin = new Plugin(__dirname);
 
-  var imageMimeTypes = [
+  plugin.multer = multer;
+
+  const imageMimeTypes = [
     'image/png',
     'image/jpg',
     'image/jpeg',
@@ -16,7 +17,7 @@ module.exports = function loadPlugin (projectPath, Plugin) {
     'image/bmp',
     'image/x-icon',
     'image/tiff'
-  ]
+  ];
 
   // set plugin configs
   plugin.setConfigs({

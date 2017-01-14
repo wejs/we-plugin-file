@@ -6,47 +6,48 @@
  */
 
 module.exports = {
-  find: function findAll (req, res) {
+  find(req, res) {
     if (req.query.selector === 'owner') {
       // see only own images
-      res.locals.query.where.creatorId = req.user.id
+      res.locals.query.where.creatorId = req.user.id;
     } else if (req.we.acl && req.we.acl.canStatic('find_all_system_images', req.userRoleNames)) {
       // can see all images
     } else {
-      return res.forbidden()
+      return res.forbidden();
     }
 
     return res.locals.Model
     .findAndCountAll(res.locals.query)
     .then(function afterFindAll (record) {
-      res.locals.metadata.count = record.count
-      res.locals.data = record.rows
-      res.ok()
+      res.locals.metadata.count = record.count;
+      res.locals.data = record.rows;
+      res.ok();
 
       return null
     })
-    .catch(res.queryError)
+    .catch(res.queryError);
   },
 
-  findOne: function findOne (req, res) {
-    var we = req.we
+  findOne(req, res) {
+    const we = req.we;
 
-    var fileName = req.params.name
+    let fileName = req.params.name
 
     if (!fileName) {
       return res.badRequest('image:findOne: fileName is required')
     }
 
-    var avaibleImageStyles = we.config.upload.image.avaibleStyles
+    const avaibleImageStyles = we.config.upload.image.avaibleStyles;
 
-    var imageStyle = req.params.style
+    let imageStyle = req.params.style;
     if (!imageStyle) {
       imageStyle = 'original'
     } else if (imageStyle !== 'original' && avaibleImageStyles.indexOf(imageStyle) === -1) {
-      return res.badRequest('image.style.invalid')
+      return res.badRequest('image.style.invalid');
     }
 
-    we.db.models.image.findOne({
+    we.db.models.image
+    .findOne({
       where: {
         name: fileName
       }
@@ -54,67 +55,68 @@ module.exports = {
     .then(function afterFindOneImage (image) {
       // image not found
       if (!image) {
-        we.log.silly('image:findOne: image not found:', fileName)
-        return res.notFound()
+        we.log.silly('image:findOne: image not found:', fileName);
+        return res.notFound();
       }
 
-      we.log.silly('image:findOne: image found:', image.get())
+      we.log.silly('image:findOne: image found:', image.get());
 
-      var storage = we.config.upload.storages[image.storageName];
+      const storage = we.config.upload.storages[image.storageName];
 
-      if (!storage) return res.serverError('we-plugin-file:findOne:storage:not_found')
+      if (!storage) return res.serverError('we-plugin-file:findOne:storage:not_found');
 
-      storage.sendFile(image, req, res, imageStyle)
+      storage.sendFile(image, req, res, imageStyle);
 
-      return null
+      return null;
     })
-    .catch(res.queryError)
+    .catch(res.queryError);
   },
 
   /**
    * Find image by id and returm image model data
    */
-  findOneReturnData: function findOneReturnData (req, res) {
-    var we = req.getWe()
+  findOneReturnData(req, res) {
+    const we = req.getWe();
 
-    var fileId = req.params.id
+    let fileId = req.params.id;
     if (!fileId) {
-      return res.send(404)
+      return res.send(404);
     }
-    we.db.models.image.findOne({
+    we.db.models.image
+    .findOne({
       where: {
         id: fileId
       }
     })
     .then(function afterFindOne (image) {
       if (!image) {
-        return res.send(404)
+        return res.send(404);
       }
       res.send({
         image: image
-      })
+      });
 
-      return null
+      return null;
     })
-    .catch(function (err) {
-      we.log.error('Error on get image from BD: ', err, fileId)
-      return res.send(404)
-    })
+    .catch( (err)=> {
+      we.log.error('Error on get image from BD: ', err, fileId);
+      return res.send(404);
+    });
   },
 
   /**
    * Upload file to upload storage set in route and save metadata on database
    */
-  create: function createOneImage (req, res) {
-    var we = req.we
+  create(req, res) {
+    const we = req.we;
     // images in upload
-    var files = req.files
+    let files = req.files;
 
-    if (!files.image || !files.image[0]) return res.badRequest('file.create.image.required')
+    if (!files.image || !files.image[0]) return res.badRequest('file.create.image.required');
 
-    var file = files.image[0]
+    let file = files.image[0]
 
-    if (!we.utils._.isObject(file)) return res.badRequest('file.create.image.invalid')
+    if (!we.utils._.isObject(file)) return res.badRequest('file.create.image.invalid');
 
     we.log.verbose('image:create: files.image to save:', file)
 
@@ -123,60 +125,62 @@ module.exports = {
 
     file.urls = {}
     // set the original url for file upploads
-    file.urls.original = res.locals.storageStrategy.getUrlFromFile('original', file)
+    file.urls.original = res.locals.storageStrategy.getUrlFromFile('original', file);
     // set temporary image styles
-    var styles = we.config.upload.image.styles
+    let styles = we.config.upload.image.styles;
     for (var sName in styles) {
-      file.urls[sName] = we.config.hostname+'/api/v1/image/' + sName + '/' + file.name
+      file.urls[sName] = we.config.hostname+'/api/v1/image/' + sName + '/' + file.name;
     }
 
-    file.description = req.body.description
-    file.label = req.body.label
-    file.mime = file.mimetype
+    file.description = req.body.description;
+    file.label = req.body.label;
+    file.mime = file.mimetype;
 
     // set storage name
-    file.storageName = (res.locals.upload.storageName || we.config.upload.defaultImageStorage)
+    file.storageName = (res.locals.upload.storageName || we.config.upload.defaultImageStorage);
 
-    file.isLocalStorage = res.locals.storageStrategy.isLocalStorage
+    file.isLocalStorage = res.locals.storageStrategy.isLocalStorage;
 
-    if (req.isAuthenticated()) file.creatorId = req.user.id
+    if (req.isAuthenticated()) file.creatorId = req.user.id;
 
     res.locals.storageStrategy
-    .generateImageStyles(file, function (err) {
+    .generateImageStyles(file, (err)=> {
       if (err) return res.serverError(err);
 
-      res.locals.Model.create(file)
+      res.locals.Model
+      .create(file)
       .then(function afterCreate (record) {
-        if (record) we.log.debug('New image record created:', record.get())
-        res.created(record)
+        if (record) we.log.debug('New image record created:', record.get());
+        res.created(record);
 
-        return null
+        return null;
       })
-      .catch(res.queryError)
-    })
+      .catch(res.queryError);
+    });
   },
 
-  destroy: function destroyFile (req, res) {
-    var we = req.we
+  destroy(req, res) {
+    const we = req.we;
 
-    we.db.models.image.findOne({
+    we.db.models.image
+    .findOne({
       where: { name: req.params.name }
     })
     .then(function afterDelete (record) {
-      if (!record) return res.notFound()
+      if (!record) return res.notFound();
 
-      res.locals.deleted = true
+      res.locals.deleted = true;
 
       var storage = we.config.upload.storages[record.storageName];
-      if (!storage) return res.serverError('we-plugin-file:delete:storage:not_found')
+      if (!storage) return res.serverError('we-plugin-file:delete:storage:not_found');
 
       storage.destroyFile(record, function afterDeleteFile(err) {
-        if (err) return res.serverError(err)
-        return res.deleted()
-      })
+        if (err) return res.serverError(err);
+        return res.deleted();
+      });
 
-      return null
+      return null;
     })
-    .catch(res.queryError)
+    .catch(res.queryError);
   }
 }

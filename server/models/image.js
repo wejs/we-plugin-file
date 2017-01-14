@@ -6,11 +6,11 @@
  */
 
 module.exports = function ImageModel (we) {
-  var _ = we.utils._
-  var async = we.utils.async
+  const _ = we.utils._,
+    async = we.utils.async;
 
   // set sequelize model define and options
-  var model = {
+  const model = {
     definition: {
       // - user given data text
       label: { type: we.db.Sequelize.STRING },
@@ -44,7 +44,7 @@ module.exports = function ImageModel (we) {
         type: we.db.Sequelize.BLOB,
         allowNull: false,
         skipSanitizer: true,
-        get: function() {
+        get() {
           var v = this.getDataValue('urls')
           if (!v) return {}
 

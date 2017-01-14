@@ -7,7 +7,7 @@
 
 module.exports = function ImageAssocModel (we) {
   // set sequelize model define and options
-  var model = {
+  const model = {
     definition: {
       modelName: {
         type: we.db.Sequelize.STRING,
