@@ -246,16 +246,16 @@ module.exports = function loadPlugin (pp, Plugin) {
 
     // - Controllers:
 
-    we.controllers.avatar = new we.class.Controller(require(pp+'/server/controllers/avatar.js'));
-    we.controllers.file = new we.class.Controller(require(pp+'/server/controllers/file.js'));
-    we.controllers.image = new we.class.Controller(require(pp+'/server/controllers/image.js'));
+    we.controllers.avatar = new we.class.Controller(require('./server/controllers/avatar.js'));
+    we.controllers.file = new we.class.Controller(require('./server/controllers/file.js'));
+    we.controllers.image = new we.class.Controller(require('./server/controllers/image.js'));
 
     // - Models
 
-    we.db.modelsConfigs.file = require(pp+'/server/models/file.js')(we);
-    we.db.modelsConfigs.fileassoc = require(pp+'/server/models/fileassoc.js')(we);
-    we.db.modelsConfigs.image = require(pp+'/server/models/image.js')(we);
-    we.db.modelsConfigs.imageassoc = require(pp+'/server/models/imageassoc.js')(we);
+    we.db.modelsConfigs.file = require('./server/models/file.js')(we);
+    we.db.modelsConfigs.fileassoc = require('./server/models/fileassoc.js')(we);
+    we.db.modelsConfigs.image = require('./server/models/image.js')(we);
+    we.db.modelsConfigs.imageassoc = require('./server/models/imageassoc.js')(we);
 
     done();
   }
