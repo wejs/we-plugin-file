@@ -4,7 +4,7 @@
 const multer = require('multer'),
   path = require('path');
 
-module.exports = function loadPlugin (projectPath, Plugin) {
+module.exports = function loadPlugin (pp, Plugin) {
   const plugin = new Plugin(__dirname);
 
   plugin.multer = multer;
@@ -236,6 +236,30 @@ module.exports = function loadPlugin (projectPath, Plugin) {
     }
   })
 
+  /**
+   * Plugin fast loader for speed up we.js projeto bootstrap
+   *
+   * @param  {Object}   we
+   * @param {Function} done    callback
+   */
+  plugin.fastLoader = function fastLoader(we, done) {
+
+    // - Controllers:
+
+    we.controllers.avatar = new we.class.Controller(require(pp+'/server/controllers/avatar.js'));
+    we.controllers.file = new we.class.Controller(require(pp+'/server/controllers/file.js'));
+    we.controllers.image = new we.class.Controller(require(pp+'/server/controllers/image.js'));
+
+    // - Models
+
+    we.db.modelsConfigs.file = require(pp+'/server/models/file.js');
+    we.db.modelsConfigs.fileassoc = require(pp+'/server/models/fileassoc.js');
+    we.db.modelsConfigs.image = require(pp+'/server/models/image.js');
+    we.db.modelsConfigs.imageassoc = require(pp+'/server/models/imageassoc.js');
+
+    done();
+  }
+
   //
   // - Plugin functions
   //
@@ -421,82 +445,82 @@ module.exports = function loadPlugin (projectPath, Plugin) {
   // - Only works if we-plugin-view is installed
   //
 
-  plugin.addJs('we.component.imageSelector', {
-    weight: 20, pluginName: 'we-plugin-file',
-    path: 'files/public/we.components.imageSelector.js'
-  })
+  // plugin.addJs('we.component.imageSelector', {
+  //   weight: 20, pluginName: 'we-plugin-file',
+  //   path: 'files/public/we.components.imageSelector.js'
+  // })
 
-  plugin.addJs('we.component.fileSelector', {
-    weight: 20, pluginName: 'we-plugin-file',
-    path: 'files/public/we.components.fileSelector.js'
-  })
+  // plugin.addJs('we.component.fileSelector', {
+  //   weight: 20, pluginName: 'we-plugin-file',
+  //   path: 'files/public/we.components.fileSelector.js'
+  // })
 
-  plugin.addJs('jquery.fancybox', {
-    weight: 15, pluginName: 'we-plugin-file',
-    path: 'files/public/fancyBox/source/jquery.fancybox.pack.js'
-  })
+  // plugin.addJs('jquery.fancybox', {
+  //   weight: 15, pluginName: 'we-plugin-file',
+  //   path: 'files/public/fancyBox/source/jquery.fancybox.pack.js'
+  // })
 
-  plugin.addCss('jquery.fancybox', {
-    weight: 15, pluginName: 'we-plugin-file',
-    path: 'files/public/fancyBox/source/jquery.fancybox.css'
-  })
+  // plugin.addCss('jquery.fancybox', {
+  //   weight: 15, pluginName: 'we-plugin-file',
+  //   path: 'files/public/fancyBox/source/jquery.fancybox.css'
+  // })
 
-  // - jquery.fileupload
-  //
-  plugin.addJs('jquery.iframe-transport', {
-    weight: 7, pluginName: 'we-plugin-file',
-    path: 'files/public/jquery.fileupload/js/jquery.iframe-transport.js'
-  })
+  // // - jquery.fileupload
+  // //
+  // plugin.addJs('jquery.iframe-transport', {
+  //   weight: 7, pluginName: 'we-plugin-file',
+  //   path: 'files/public/jquery.fileupload/js/jquery.iframe-transport.js'
+  // })
 
-  plugin.addJs('jquery.fileupload', {
-    weight: 7, pluginName: 'we-plugin-file',
-    path: 'files/public/jquery.fileupload/js/jquery.fileupload.js'
-  })
+  // plugin.addJs('jquery.fileupload', {
+  //   weight: 7, pluginName: 'we-plugin-file',
+  //   path: 'files/public/jquery.fileupload/js/jquery.fileupload.js'
+  // })
 
-  plugin.addCss('jquery.fileupload', {
-    weight: 7, pluginName: 'we-plugin-file',
-    path: 'files/public/jquery.fileupload/css/jquery.fileupload.css'
-  })
+  // plugin.addCss('jquery.fileupload', {
+  //   weight: 7, pluginName: 'we-plugin-file',
+  //   path: 'files/public/jquery.fileupload/css/jquery.fileupload.css'
+  // })
 
-  plugin.addJs('jquery.fileupload-process', {
-    weight: 8, pluginName: 'we-plugin-file',
-    path: 'files/public/jquery.fileupload/js/jquery.fileupload-process.js'
-  })
+  // plugin.addJs('jquery.fileupload-process', {
+  //   weight: 8, pluginName: 'we-plugin-file',
+  //   path: 'files/public/jquery.fileupload/js/jquery.fileupload-process.js'
+  // })
 
-  plugin.addJs('jquery.fileupload-image', {
-    weight: 8, pluginName: 'we-plugin-file',
-    path: 'files/public/jquery.fileupload/js/jquery.fileupload-image.js'
-  })
+  // plugin.addJs('jquery.fileupload-image', {
+  //   weight: 8, pluginName: 'we-plugin-file',
+  //   path: 'files/public/jquery.fileupload/js/jquery.fileupload-image.js'
+  // })
 
-  plugin.addJs('jquery.fileupload-audio', {
-    weight: 8, pluginName: 'we-plugin-file',
-    path: 'files/public/jquery.fileupload/js/jquery.fileupload-audio.js'
-  })
+  // plugin.addJs('jquery.fileupload-audio', {
+  //   weight: 8, pluginName: 'we-plugin-file',
+  //   path: 'files/public/jquery.fileupload/js/jquery.fileupload-audio.js'
+  // })
 
-  plugin.addJs('jquery.fileupload-video', {
-    weight: 8, pluginName: 'we-plugin-file',
-    path: 'files/public/jquery.fileupload/js/jquery.fileupload-video.js'
-  })
+  // plugin.addJs('jquery.fileupload-video', {
+  //   weight: 8, pluginName: 'we-plugin-file',
+  //   path: 'files/public/jquery.fileupload/js/jquery.fileupload-video.js'
+  // })
 
-  plugin.addJs('jquery.fileupload-validate', {
-    weight: 8, pluginName: 'we-plugin-file',
-    path: 'files/public/jquery.fileupload/js/jquery.fileupload-validate.js'
-  })
+  // plugin.addJs('jquery.fileupload-validate', {
+  //   weight: 8, pluginName: 'we-plugin-file',
+  //   path: 'files/public/jquery.fileupload/js/jquery.fileupload-validate.js'
+  // })
 
-  plugin.addJs('jquery.fileupload-ui', {
-    weight: 8, pluginName: 'we-plugin-file',
-    path: 'files/public/jquery.fileupload/js/jquery.fileupload-ui.js'
-  })
+  // plugin.addJs('jquery.fileupload-ui', {
+  //   weight: 8, pluginName: 'we-plugin-file',
+  //   path: 'files/public/jquery.fileupload/js/jquery.fileupload-ui.js'
+  // })
 
-  plugin.addJs('jquery.fileupload-jquery-ui', {
-    weight: 8, pluginName: 'we-plugin-file',
-    path: 'files/public/jquery.fileupload/js/jquery.fileupload-jquery-ui.js'
-  })
+  // plugin.addJs('jquery.fileupload-jquery-ui', {
+  //   weight: 8, pluginName: 'we-plugin-file',
+  //   path: 'files/public/jquery.fileupload/js/jquery.fileupload-jquery-ui.js'
+  // })
 
-  plugin.addCss('jquery.fileupload-jquery-ui', {
-    weight: 8, pluginName: 'we-plugin-file',
-    path: 'files/public/jquery.fileupload/css/jquery.fileupload-ui.css'
-  })
+  // plugin.addCss('jquery.fileupload-jquery-ui', {
+  //   weight: 8, pluginName: 'we-plugin-file',
+  //   path: 'files/public/jquery.fileupload/css/jquery.fileupload-ui.css'
+  // })
 
   return plugin
 }

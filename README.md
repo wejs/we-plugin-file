@@ -35,6 +35,36 @@ See: https://github.com/wejs/we-plugin-file/blob/master/plugin.js#L73
 #### NPM Info:
 [![NPM](https://nodei.co/npm/we-plugin-file.png?downloads=true&downloadRank=true&stars=true)](https://nodei.co/npm/we-plugin-file/)
 
+## v1.4 plan
+
+
+
+
+post -> banner -> image
+
+post:
+
+banners: {
+  type  : 'belongsToMany',
+  throgh: 'PostBannerImage',
+  inverse: 'inPostBanners',
+  model : 'image',
+  privateKey: 'postId',
+  targetKey: 'id'  
+};
+
+
+image:
+
+inPostBanners: {
+  type  : 'belongsToMany',
+  throgh: 'PostBannerImage',
+  inverse: 'banners',
+  model : 'post',
+  privateKey: 'imageId',
+  targetKey: 'id'  
+};
+
 ## License
 
 Under [the MIT license](https://github.com/wejs/we/blob/master/LICENSE.md).

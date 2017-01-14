@@ -128,7 +128,7 @@ module.exports = {
     file.urls.original = res.locals.storageStrategy.getUrlFromFile('original', file);
     // set temporary image styles
     let styles = we.config.upload.image.styles;
-    for (var sName in styles) {
+    for (let sName in styles) {
       file.urls[sName] = we.config.hostname+'/api/v1/image/' + sName + '/' + file.name;
     }
 
