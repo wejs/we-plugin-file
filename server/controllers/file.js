@@ -1,6 +1,17 @@
 module.exports = {
   /**
-   * Upload one file to upload dir and save metadata on database
+   * Upload one file to default storage strategy and save metadata on database
+   *
+   * @apiName file.create
+   * @apiGroup file
+   *
+   * @module Controller
+   *
+   * @param {Object} req Express.js request
+   * @param {Object} res Express.js response
+   * @param {Function} next Express.js callback
+   *
+   * @successResponse 201
    */
   create(req, res) {
     const we = req.we,
@@ -39,6 +50,20 @@ module.exports = {
     .catch(res.queryError);
   },
 
+  /**
+   * Download one file
+   *
+   * @apiName file.download
+   * @apiGroup file
+   *
+   * @module Controller
+   *
+   * @param {Object} req Express.js request
+   * @param {Object} res Express.js response
+   * @param {Function} next Express.js callback
+   *
+   * @successResponse 201
+   */
   download(req, res) {
     const we = req.we;
     let fileName = req.params.name;
@@ -76,6 +101,20 @@ module.exports = {
     .catch(res.queryError);
   },
 
+  /**
+   * Get we-plugin-view modal content for select files in it
+   *
+   * @apiName file.getFormModalContent
+   * @apiGroup file
+   *
+   * @module Controller
+   *
+   * @param {Object} req Express.js request
+   * @param {Object} res Express.js response
+   * @param {Function} next Express.js callback
+   *
+   * @successResponse 200
+   */
   getFormModalContent(req, res) {
     // only works with we-plugin-view
     if (!req.we.view) return res.notFound();
@@ -85,6 +124,20 @@ module.exports = {
     );
   },
 
+  /**
+   * Delete one file
+   *
+   * @apiName file.destroy
+   * @apiGroup file
+   *
+   * @module Controller
+   *
+   * @param {Object} req Express.js request
+   * @param {Object} res Express.js response
+   * @param {Function} next Express.js callback
+   *
+   * @successResponse 204
+   */
   destroy(req, res) {
     const we = req.we;
 

@@ -1,11 +1,20 @@
-/**
- * ImagesController
- *
- * @module    :: Controller
- * @description :: Contains logic for handling requests.
- */
-
 module.exports = {
+  /**
+   * Find images with support to see only own files
+   *
+   * @apiName image.find
+   * @apiGroup image
+   *
+   * @apiParam {String} `selector` If set to owner will only return authenticated user images
+   *
+   * @module Controller
+   *
+   * @param {Object} req Express.js request
+   * @param {Object} res Express.js response
+   * @param {Function} next Express.js callback
+   *
+   * @successResponse 200
+   */
   find(req, res) {
     if (req.query.selector === 'owner') {
       // see only own images
@@ -18,16 +27,30 @@ module.exports = {
 
     return res.locals.Model
     .findAndCountAll(res.locals.query)
-    .then(function afterFindAll (record) {
+    .then( (record)=> {
       res.locals.metadata.count = record.count;
       res.locals.data = record.rows;
       res.ok();
 
-      return null
+      return null;
     })
     .catch(res.queryError);
   },
 
+  /**
+   * Find one image and returns its content or redirect to external url in external storages
+   *
+   * @apiName image.findOne
+   * @apiGroup image
+   *
+   * @module Controller
+   *
+   * @param {Object} req Express.js request
+   * @param {Object} res Express.js response
+   * @param {Function} next Express.js callback
+   *
+   * @successResponse 200
+   */
   findOne(req, res) {
     const we = req.we;
 
@@ -74,6 +97,17 @@ module.exports = {
 
   /**
    * Find image by id and returm image model data
+   *
+   * @apiName image.findOneReturnData
+   * @apiGroup image
+   *
+   * @module Controller
+   *
+   * @param {Object} req Express.js request
+   * @param {Object} res Express.js response
+   * @param {Function} next Express.js callback
+   *
+   * @successResponse 200
    */
   findOneReturnData(req, res) {
     const we = req.getWe();
@@ -106,6 +140,17 @@ module.exports = {
 
   /**
    * Upload file to upload storage set in route and save metadata on database
+   *
+   * @apiName image.create
+   * @apiGroup image
+   *
+   * @module Controller
+   *
+   * @param {Object} req Express.js request
+   * @param {Object} res Express.js response
+   * @param {Function} next Express.js callback
+   *
+   * @successResponse 201
    */
   create(req, res) {
     const we = req.we;
@@ -114,21 +159,21 @@ module.exports = {
 
     if (!files.image || !files.image[0]) return res.badRequest('file.create.image.required');
 
-    let file = files.image[0]
+    let file = files.image[0];
 
     if (!we.utils._.isObject(file)) return res.badRequest('file.create.image.invalid');
 
-    we.log.verbose('image:create: files.image to save:', file)
+    we.log.verbose('image:create: files.image to save:', file);
 
     // set default file Name if not set in storage
-    if (!file.name) file.name = file.originalname
+    if (!file.name) file.name = file.originalname;
 
-    file.urls = {}
+    file.urls = {};
     // set the original url for file upploads
     file.urls.original = res.locals.storageStrategy.getUrlFromFile('original', file);
     // set temporary image styles
     let styles = we.config.upload.image.styles;
-    for (var sName in styles) {
+    for (let sName in styles) {
       file.urls[sName] = we.config.hostname+'/api/v1/image/' + sName + '/' + file.name;
     }
 
@@ -149,7 +194,7 @@ module.exports = {
 
       res.locals.Model
       .create(file)
-      .then(function afterCreate (record) {
+      .then( (record)=> {
         if (record) we.log.debug('New image record created:', record.get());
         res.created(record);
 
@@ -159,6 +204,20 @@ module.exports = {
     });
   },
 
+  /**
+   * Delete one image
+   *
+   * @apiName image.destroy
+   * @apiGroup image
+   *
+   * @module Controller
+   *
+   * @param {Object} req Express.js request
+   * @param {Object} res Express.js response
+   * @param {Function} next Express.js callback
+   *
+   * @successResponse 201
+   */
   destroy(req, res) {
     const we = req.we;
 
@@ -166,7 +225,7 @@ module.exports = {
     .findOne({
       where: { name: req.params.name }
     })
-    .then(function afterDelete (record) {
+    .then( (record)=> {
       if (!record) return res.notFound();
 
       res.locals.deleted = true;

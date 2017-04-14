@@ -4,12 +4,25 @@
  * @module    :: Controller
  * @description :: Contains logic for handling requests.
  */
+
 const fs = require('fs');
 
 module.exports = {
   /**
    * Get user avatar with user id, redirect to avatar url if exists or send the default user avatar
    *
+   * @apiName avatar.getAvatar
+   * @apiGroup avatar
+   *
+   * @apiParam {String} `style` avatar image style/size
+   *
+   * @module Controller
+   *
+   * @param {Object} req Express.js request
+   * @param {Object} res Express.js response
+   * @param {Function} next Express.js callback
+   *
+   * @successResponse 200
    */
   getAvatar(req, res) {
     const we = req.we,
@@ -49,6 +62,20 @@ module.exports = {
     })
   },
 
+  /**
+   * Change user avatar
+   *
+   * @apiName avatar.changeAvatar
+   * @apiGroup avatar
+   *
+   * @module Controller
+   *
+   * @param {Object} req Express.js request
+   * @param {Object} res Express.js response
+   * @param {Function} next Express.js callback
+   *
+   * @successResponse 200
+   */
   changeAvatar(req, res) {
     if (!req.isAuthenticated()) return res.forbidden();
     if (!res.locals.data) return res.notFound();
