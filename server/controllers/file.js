@@ -26,7 +26,10 @@ module.exports = {
 
     we.log.verbose('file:create: files.file to save:', file);
 
+    file.description = req.body.description;
+    file.label = req.body.label;
     file.mime = file.mimetype;
+
     // set creator
     if (req.isAuthenticated()) file.creatorId = req.user.id;
     // set default file Name if not set in storage
