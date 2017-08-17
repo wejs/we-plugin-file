@@ -4,20 +4,21 @@
 const multer = require('multer'),
   path = require('path');
 
+const imageMimeTypes = [
+  'image/png',
+  'image/jpg',
+  'image/jpeg',
+  'image/gif',
+  'image/bmp',
+  'image/x-icon',
+  'image/tiff',
+  'image/vnd.microsoft.icon' // .ico
+];
+
 module.exports = function loadPlugin (pp, Plugin) {
   const plugin = new Plugin(__dirname);
 
   plugin.multer = multer;
-
-  const imageMimeTypes = [
-    'image/png',
-    'image/jpg',
-    'image/jpeg',
-    'image/gif',
-    'image/bmp',
-    'image/x-icon',
-    'image/tiff'
-  ];
 
   // set plugin configs
   plugin.setConfigs({
