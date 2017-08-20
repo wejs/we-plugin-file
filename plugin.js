@@ -17,8 +17,16 @@ const imageMimeTypes = [
 
 module.exports = function loadPlugin (pp, Plugin) {
   const plugin = new Plugin(__dirname);
+  const lConfig = plugin.we.config;
 
+  let styles;
   plugin.multer = multer;
+
+  if (lConfig.upload && lConfig.upload.image && lConfig.upload.image.avaibleStyles) {
+    styles = lConfig.upload.image.avaibleStyles;
+  } else {
+    styles = [ 'thumbnail', 'medium', 'large' ];
+  }
 
   // set plugin configs
   plugin.setConfigs({
@@ -68,7 +76,7 @@ module.exports = function loadPlugin (pp, Plugin) {
 
       file: {},
       image: {
-        avaibleStyles: [ 'thumbnail', 'medium', 'large' ],
+        avaibleStyles: styles,
         styles: {
           thumbnail: { width: '75', heigth: '75' },
           medium: { width: '250', heigth: '250' },
@@ -77,8 +85,8 @@ module.exports = function loadPlugin (pp, Plugin) {
       }
     }
   })
-  // ser plugin routes
-  plugin.setRoutes({
+
+  const pPoutes = {
     // get logged in user avatar
     'get /avatar/:id([0-9]+)': {
       controller: 'avatar',
@@ -107,22 +115,6 @@ module.exports = function loadPlugin (pp, Plugin) {
       action: 'findOne',
       model: 'image',
       responseType: 'json',
-      permission: 'find_image'
-    },
-    // Image style thumbnail | medium | large
-    'get /api/v1/image/:style(original|mini|thumbnail|medium|large)/:name': {
-      controller: 'image',
-      action: 'findOne',
-      model: 'image',
-      responseType: 'json',
-      permission: 'find_image'
-    },
-    'get /api/v1/image/:id([0-9]+)/data': {
-      controller: 'image',
-      action: 'findOneReturnData',
-      model: 'image',
-      responseType: 'json',
-      loadRecord: true,
       permission: 'find_image'
     },
     // upload one image
@@ -235,7 +227,28 @@ module.exports = function loadPlugin (pp, Plugin) {
       responseType: 'json',
       permission: 'delete_file'
     }
-  })
+  };
+
+    // Image style thumbnail | medium | large
+  pPoutes['get /api/v1/image/:style('+styles.join('|')+')/:name'] = {
+    controller: 'image',
+    action: 'findOne',
+    model: 'image',
+    responseType: 'json',
+    permission: 'find_image'
+  };
+
+  pPoutes['get /api/v1/image/:id([0-9]+)/data'] = {
+    controller: 'image',
+    action: 'findOneReturnData',
+    model: 'image',
+    responseType: 'json',
+    loadRecord: true,
+    permission: 'find_image'
+  };
+
+  // ser plugin routes
+  plugin.setRoutes(pPoutes);
 
   /**
    * Plugin fast loader for speed up we.js projeto bootstrap
