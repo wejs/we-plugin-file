@@ -229,6 +229,10 @@ module.exports = function loadPlugin (pp, Plugin) {
     }
   };
 
+  if (styles.indexOf('original') == -1) {
+    styles.push('original');
+  }
+
     // Image style thumbnail | medium | large
   pPoutes['get /api/v1/image/:style('+styles.join('|')+')/:name'] = {
     controller: 'image',
