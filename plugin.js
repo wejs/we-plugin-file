@@ -229,12 +229,8 @@ module.exports = function loadPlugin (pp, Plugin) {
     }
   };
 
-  if (styles.indexOf('original') == -1) {
-    styles.push('original');
-  }
-
     // Image style thumbnail | medium | large
-  pPoutes['get /api/v1/image/:style('+styles.join('|')+')/:name'] = {
+  pPoutes['get /api/v1/image/:style('+styles.concat('original').join('|')+')/:name'] = {
     controller: 'image',
     action: 'findOne',
     model: 'image',
