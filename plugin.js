@@ -134,7 +134,7 @@ module.exports = function loadPlugin (pp, Plugin) {
           fieldSize: 20 * 1000000 // 20MB
         },
         // file filter function used in multer({ fileFilter: fn })
-        fileFilter: function fileFilter (req, file, cb) {
+        fileFilter(req, file, cb) {
           // The function should call `cb` with a boolean
           // to indicate if the file should be accepted
           if (imageMimeTypes.indexOf(file.mimetype) < 0) {
@@ -294,20 +294,20 @@ module.exports = function loadPlugin (pp, Plugin) {
    * @param {Object} data {we: app, middlewares: middlewares, config: config}
    */
   plugin.setUploadMiddleware = function setUploadMiddleware (data) {
-    var we = data.we
-    var config = data.config
-    var middlewares = data.middlewares
+    const we = data.we
+    let config = data.config
+    let middlewares = data.middlewares
 
     // bind upload  if have upload config and after ACL check
     if (config.upload) {
-      var storageName = config.upload.storageName
+      let storageName = config.upload.storageName
 
       if (!storageName) {
        storageName = (config.upload.isImage)? we.config.upload.defaultImageStorage: we.config.upload.defaultFileStorage
       }
 
       if (!config.upload.storage && storageName) {
-        var storageStrategy = we.config.upload.storages[storageName]
+        let storageStrategy = we.config.upload.storages[storageName]
 
         if (
           !storageStrategy ||
@@ -342,9 +342,9 @@ module.exports = function loadPlugin (pp, Plugin) {
   plugin.getFieldSetter = function getFieldSetter (fieldName) {
     return function setFiles (val) {
       if (plugin.we.utils._.isArray(val)) {
-        var newVal = []
+        let newVal = []
         // skip flags and invalid values
-        for (var i = 0; i < val.length; i++) {
+        for (let i = 0; i < val.length; i++) {
           if (val[i] && val[i] !== 'null') newVal.push(val[i])
         }
         this.setDataValue(fieldName, newVal)
@@ -385,7 +385,7 @@ module.exports = function loadPlugin (pp, Plugin) {
     }
 
     // set field configs
-    var cfgs = we.utils._.clone(opts)
+    let cfgs = we.utils._.clone(opts)
     cfgs.type = we.db.Sequelize.VIRTUAL
     // set virtual setter
     cfgs.set = plugin.getFieldSetter(name, cfgs)
@@ -399,7 +399,7 @@ module.exports = function loadPlugin (pp, Plugin) {
   }
 
   plugin.setModelsFileField = function setModelsFileField (we, done) {
-    var f, models = we.db.modelsConfigs
+    let f, models = we.db.modelsConfigs
 
     for (var modelName in models) {
       if (models[modelName].options) {
@@ -536,5 +536,5 @@ module.exports = function loadPlugin (pp, Plugin) {
     path: 'files/public/jquery.fileupload/css/jquery.fileupload-ui.css'
   })
 
-  return plugin
+  return plugin;
 }

@@ -1,4 +1,4 @@
-var exec = require('child_process').exec
+const exec = require('child_process').exec;
 
 module.exports = {
   /**
@@ -7,10 +7,10 @@ module.exports = {
    * @param  {Object} we we.js object
    * @return {Array}    a list of update objects
    */
-  updates: function updates() {
+  updates() {
     return [{
       version: '1.2.0',
-      update: function (we, done) {
+      update(we, done) {
 
         we.utils.async.series([
           function (done) {
@@ -51,14 +51,15 @@ module.exports = {
     },
     {
       version: '1.3.1',
-      update: function (we, done) {
-        var imageStrategy = we.config.upload.storages.localImages;
-        var fileStrategy = we.config.upload.storages.localFiles;
-        var styles = we.config.upload.image.styles;
+      update(we, done) {
+        let imageStrategy = we.config.upload.storages.localImages;
+        let fileStrategy = we.config.upload.storages.localFiles;
+        let styles = we.config.upload.image.styles;
 
         we.utils.async.series([
           function (done) {
-            we.db.models.image.findAll({
+            we.db.models.image
+            .findAll({
               where: {
                 storageName: null
               }
@@ -66,23 +67,25 @@ module.exports = {
             .then(function (r) {
               we.utils.async.eachSeries(r, function (file, next) {
                 file.storageName = 'localImages';
-                var urls = {
+                let urls = {
                   original: imageStrategy.getUrlFromFile('original', file)
                 }
 
-                for (var sName in styles) {
+                for (let sName in styles) {
                   urls[sName] = '/api/v1/image/' + sName + '/' + file.name
                 }
 
                 file.urls = urls;
 
                 file.save().nodeify(next);
-              }, done)
+              }, done);
+              return null;
             })
-            .catch(done)
+            .catch(done);
           },
           function (done) {
-            we.db.models.file.findAll({
+            we.db.models.file
+            .findAll({
               where: {
                 storageName: null
               }
@@ -95,11 +98,12 @@ module.exports = {
                 }
 
                 file.save().nodeify(next);
-              }, done)
+              }, done);
+              return null;
             })
-            .catch(done)
+            .catch(done);
           }
-        ], done)
+        ], done);
       }
     }
     ];
