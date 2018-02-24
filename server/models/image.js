@@ -119,17 +119,25 @@ module.exports = function ImageModel (we) {
       return Model.options.imageFields
     }
 
-    we.file.image.afterFind = function afterFind (r, opts, done) {
-      const Model = this;
+    we.file.image.afterFind = function afterFind (r, opts) {
+      return new Promise( (resolve, reject)=> {
+        const Model = this;
 
-      if (_.isArray(r)) {
-        async.each(r, (r1, next)=> {
-          // we.db.models.imageassoc
-          we.file.image.afterFindRecord.bind(Model)(r1, opts, next);
-        }, done);
-      } else {
-        we.file.image.afterFindRecord.bind(Model)(r, opts, done);
-      }
+        if (_.isArray(r)) {
+          async.each(r, (r1, next)=> {
+            // we.db.models.imageassoc
+            we.file.image.afterFindRecord.bind(Model)(r1, opts, next);
+          }, (err)=> {
+            if (err) return reject(err);
+            resolve();
+          });
+        } else {
+          we.file.image.afterFindRecord.bind(Model)(r, opts, (err)=> {
+            if (err) return reject(err);
+            resolve();
+          });
+        }
+      });
     }
 
     we.file.image.afterFindRecord = function afterFindRecord (r, opts, done) {
@@ -180,190 +188,203 @@ module.exports = function ImageModel (we) {
       async.parallel(functions, done);
     }
     // after create one record with image fields
-    we.file.image.afterCreatedRecord = function afterCreatedRecord (r, opts, done) {
-      const functions = [];
-      const Model = this;
+    we.file.image.afterCreatedRecord = function afterCreatedRecord (r) {
 
-      const fields = we.file.image.getModelImageFields(this);
-      if (!fields) return done();
+      return new Promise( (resolve, reject)=> {
+        const functions = [];
+        const Model = this;
 
-      const imageFields = Object.keys(fields);
+        const fields = we.file.image.getModelImageFields(this);
+        if (!fields) return resolve();
 
-      if (!r._salvedImages) r._salvedImages = {};
-      if (!r._salvedImageAssocs) r._salvedImageAssocs = {};
+        const imageFields = Object.keys(fields);
 
-      imageFields.forEach( (fieldName)=> {
-        let values = r.get(fieldName);
-        if (_.isEmpty(values)) return;
+        if (!r._salvedImages) r._salvedImages = {};
+        if (!r._salvedImageAssocs) r._salvedImageAssocs = {};
 
-        const imagesToSave = [];
-        const newImageAssocs = [];
+        imageFields.forEach( (fieldName)=> {
+          let values = r.get(fieldName);
+          if (_.isEmpty(values)) return;
 
-        functions.push( (nextField)=> {
-          async.each(values,  (value, next)=> {
-            if (!value || (value === 'null')) return next();
+          const imagesToSave = [];
+          const newImageAssocs = [];
 
-            // check if the image exists
-            db.models.image
-            .findOne({
-              where: { id: value.id || value }
-            })
-            .then( (i)=> {
-              if (!i) {
-                next();
-                return null;
-              }
+          functions.push( (nextField)=> {
+            async.each(values,  (value, next)=> {
+              if (!value || (value === 'null')) return next();
 
-              return db.models.imageassoc
-              .create({
-                modelName: Model.name,
-                modelId: r.id,
-                field: fieldName,
-                imageId: value.id || value
-              })
-              .then( (r)=> {
-                we.log.verbose('Image assoc created:', r.id);
-
-                imagesToSave.push(i);
-                newImageAssocs.push(r);
-
-                next();
-                return null;
-              });
-            })
-            .catch(next);
-          }, (err)=> {
-            if (err) return nextField(err);
-
-            r._salvedImageAssocs[fieldName] = newImageAssocs;
-            r._salvedImages[fieldName] = imagesToSave;
-            r.setDataValue(fieldName, imagesToSave.map( (im)=> {
-              return im.toJSON();
-            }));
-
-            nextField();
-          });
-        });
-      });
-
-      async.series(functions, done);
-    }
-    // after update one record with image fields
-    we.file.image.afterUpdatedRecord = function afterUpdatedRecord (r, opts, done) {
-      const Model = this;
-
-      const fields = we.file.image.getModelImageFields(this);
-      if (!fields) {
-        return done();
-      }
-
-      const fieldNames = Object.keys(fields);
-      async.eachSeries(fieldNames,  (fieldName, nextField)=> {
-        // check if user whant update this field
-        if (opts.fields.indexOf(fieldName) === -1) return nextField();
-
-        let imagesToSave = _.clone(r.get(fieldName));
-        let newImageAssocs = [];
-        let newImageAssocsIds = [];
-
-        async.series([
-          function findOrCreateAllAssocs (done) {
-            let preloadedImagesAssocsToSave = [];
-
-            async.each(imagesToSave, (its, next)=> {
-              if (_.isEmpty(its) || its === 'null') return next();
-
-              let values = {
-                modelName: Model.name,
-                modelId: r.id,
-                field: fieldName,
-                imageId: its.id || its
-              };
-              // check if this image exits
-              db.models.image.findOne({
-                where: { id: its.id || its }
+              // check if the image exists
+              db.models.image
+              .findOne({
+                where: { id: value.id || value }
               })
               .then( (i)=> {
                 if (!i) {
-                  done();
+                  next();
                   return null;
                 }
-                // find of create the assoc
+
                 return db.models.imageassoc
-                .findOrCreate({
-                  where: values, defaults: values
+                .create({
+                  modelName: Model.name,
+                  modelId: r.id,
+                  field: fieldName,
+                  imageId: value.id || value
                 })
                 .then( (r)=> {
-                  r[0].image = i;
-                  preloadedImagesAssocsToSave.push(r[0]);
+                  we.log.verbose('Image assoc created:', r.id);
+
+                  imagesToSave.push(i);
+                  newImageAssocs.push(r);
+
                   next();
                   return null;
                 });
               })
-              .catch(done);
+              .catch(next);
             }, (err)=> {
-              if (err) return done(err)
+              if (err) return nextField(err);
 
-              imagesToSave = preloadedImagesAssocsToSave.map( (r)=> {
-                newImageAssocsIds.push(r.id);
-                return r.image
-              });
+              r._salvedImageAssocs[fieldName] = newImageAssocs;
+              r._salvedImages[fieldName] = imagesToSave;
+              r.setDataValue(fieldName, imagesToSave.map( (im)=> {
+                return im.toJSON();
+              }));
 
-              newImageAssocs = preloadedImagesAssocsToSave;
-              done();
-            })
-          },
-          // delete removed image assocs
-          function deleteAssocs (done) {
-            let query = {
-              where: {
-                modelName: Model.name,
-                modelId: r.id,
-                field: fieldName
+              nextField();
+            });
+          });
+        });
+
+        async.series(functions, (err)=> {
+          if (err) return reject(err);
+          resolve();
+        });
+      });
+    }
+    // after update one record with image fields
+    we.file.image.afterUpdatedRecord = function afterUpdatedRecord (r, opts) {
+      return new Promise( (resolve, reject)=> {
+        const Model = this;
+
+        const fields = we.file.image.getModelImageFields(this);
+        if (!fields) {
+          return resolve();
+        }
+
+        const fieldNames = Object.keys(fields);
+        async.eachSeries(fieldNames,  (fieldName, nextField)=> {
+          // check if user whant update this field
+          if (opts.fields.indexOf(fieldName) === -1) return nextField();
+
+          let imagesToSave = _.clone(r.get(fieldName));
+          let newImageAssocs = [];
+          let newImageAssocsIds = [];
+
+          async.series([
+            function findOrCreateAllAssocs (done) {
+              let preloadedImagesAssocsToSave = [];
+
+              async.each(imagesToSave, (its, next)=> {
+                if (_.isEmpty(its) || its === 'null') return next();
+
+                let values = {
+                  modelName: Model.name,
+                  modelId: r.id,
+                  field: fieldName,
+                  imageId: its.id || its
+                };
+                // check if this image exits
+                db.models.image.findOne({
+                  where: { id: its.id || its }
+                })
+                .then( (i)=> {
+                  if (!i) {
+                    done();
+                    return null;
+                  }
+                  // find of create the assoc
+                  return db.models.imageassoc
+                  .findOrCreate({
+                    where: values, defaults: values
+                  })
+                  .then( (r)=> {
+                    r[0].image = i;
+                    preloadedImagesAssocsToSave.push(r[0]);
+                    next();
+                    return null;
+                  });
+                })
+                .catch(done);
+              }, (err)=> {
+                if (err) return done(err)
+
+                imagesToSave = preloadedImagesAssocsToSave.map( (r)=> {
+                  newImageAssocsIds.push(r.id);
+                  return r.image
+                });
+
+                newImageAssocs = preloadedImagesAssocsToSave;
+                done();
+              })
+            },
+            // delete removed image assocs
+            function deleteAssocs (done) {
+              let query = {
+                where: {
+                  modelName: Model.name,
+                  modelId: r.id,
+                  field: fieldName
+                }
+              };
+
+              if (!_.isEmpty(newImageAssocsIds)) {
+                query.where.id = { [we.Op.notIn]: newImageAssocsIds };
               }
-            };
 
-            if (!_.isEmpty(newImageAssocsIds)) {
-              query.where.id = { $notIn: newImageAssocsIds };
-            }
-
-            db.models.imageassoc
-            .destroy(query)
-            .then( (result)=> {
-              we.log.verbose('Result from deleted image assocs: ', result, fieldName, Model.name);
+              db.models.imageassoc
+              .destroy(query)
+              .then( (result)=> {
+                we.log.verbose('Result from deleted image assocs: ', result, fieldName, Model.name);
+                done();
+                return null;
+              })
+              .catch(done);
+            },
+            function setRecorValues (done) {
+              r._salvedImages[fieldName] = imagesToSave;
+              r._salvedImageAssocs[fieldName] = newImageAssocs;
+              r.setDataValue(fieldName, imagesToSave.map( (im)=> {
+                return im.toJSON();
+              }));
               done();
-              return null;
-            })
-            .catch(done);
-          },
-          function setRecorValues (done) {
-            r._salvedImages[fieldName] = imagesToSave;
-            r._salvedImageAssocs[fieldName] = newImageAssocs;
-            r.setDataValue(fieldName, imagesToSave.map( (im)=> {
-              return im.toJSON();
-            }));
-            done();
-          }
-        ], nextField);
-      }, done);
+            }
+          ], nextField);
+        }, (err)=> {
+          if (err) return reject(err);
+          resolve();
+        });
+      });
     }
     // delete the image associations after delete related model
-    we.file.image.afterDeleteRecord = function afterDeleteRecord (r, opts, done) {
-      const Model = this;
+    we.file.image.afterDeleteRecord = function afterDeleteRecord (r) {
+      return new Promise( (resolve, reject)=> {
+        const Model = this;
 
-      db.models.imageassoc
-      .destroy({
-        where: {
-          modelName: Model.name,
-          modelId: r.id
-        }
-      })
-      .then( (result)=> {
-        we.log.debug('Deleted ' + result + ' image assocs from record with id: ' + r.id);
-        done();
-        return null;
-      })
-      .catch(done);
+        db.models.imageassoc
+        .destroy({
+          where: {
+            modelName: Model.name,
+            modelId: r.id
+          }
+        })
+        .then( (result)=> {
+          we.log.debug('Deleted ' + result + ' image assocs from record with id: ' + r.id);
+          resolve();
+          return null;
+        })
+        .catch(reject);
+      });
     }
   });
 

@@ -139,18 +139,26 @@ module.exports = function FileModel (we) {
       return Model.options.fileFields;
     }
 
-    we.file.file.afterFind = function afterFind (r, opts, done) {
-      const Model = this;
-      if (_.isArray(r)) {
-        async.eachSeries(r, (r1, next)=> {
-          // we.db.models.fileassoc
-          we.file.file.afterFindRecord.bind(Model)(r1, opts, next);
-        }, done);
-      } else {
-        we.file.file.afterFindRecord.bind(Model)(r, opts, done);
-      }
+    we.file.file.afterFind = function (r, opts) {
+      return new Promise( (resolve, reject)=> {
+        const Model = this;
+        if (_.isArray(r)) {
+          async.eachSeries(r, (r1, next)=> {
+            // we.db.models.fileassoc
+            we.file.file.afterFindRecord.bind(Model)(r1, opts, next);
+          }, (err)=> {
+            if (err) return reject(err);
+            resolve();
+          });
+        } else {
+          we.file.file.afterFindRecord.bind(Model)(r, opts, (err)=> {
+            if (err) return reject(err);
+            resolve();
+          });
+        }
+      });
     }
-    we.file.file.afterFindRecord = function afterFindRecord (r, opts, done) {
+    we.file.file.afterFindRecord = function (r, opts, done) {
       const functions = [];
       const Model = this;
       // found 0 results
@@ -198,190 +206,203 @@ module.exports = function FileModel (we) {
       async.parallel(functions, done);
     }
     // after create one record with file fields
-    we.file.file.afterCreatedRecord = function afterCreatedRecord (r, opts, done) {
-      const functions = [];
-      const Model = this;
+    we.file.file.afterCreatedRecord = function (r) {
+      return new Promise( (resolve, reject)=> {
+        const functions = [];
+        const Model = this;
 
-      let fields = we.file.file.getModelFileFields(this);
-      if (!fields) return done();
+        let fields = we.file.file.getModelFileFields(this);
+        if (!fields) return resolve();
 
-      let fileFields = Object.keys(fields);
+        let fileFields = Object.keys(fields);
 
-      if (!r._salvedFiles) r._salvedFiles = {};
-      if (!r._salvedFileAssocs) r._salvedFileAssocs = {};
+        if (!r._salvedFiles) r._salvedFiles = {};
+        if (!r._salvedFileAssocs) r._salvedFileAssocs = {};
 
-      fileFields.forEach( (fieldName)=> {
-        let values = r.get(fieldName);
-        if (_.isEmpty(values)) return;
+        fileFields.forEach( (fieldName)=> {
+          let values = r.get(fieldName);
+          if (_.isEmpty(values)) return;
 
-        let filesToSave = [];
-        let newFileAssocs = [];
+          let filesToSave = [];
+          let newFileAssocs = [];
 
-        functions.push( (nextField)=> {
-          async.each(values, (value, next)=> {
-            if (!value || (value === 'null')) return next();
+          functions.push( (nextField)=> {
+            async.each(values, (value, next)=> {
+              if (!value || (value === 'null')) return next();
 
-            // check if the file exists
-            db.models.file.findOne({
-              where: { id: value.id || value }
-            })
-            .then( (i)=> {
-              if (!i) {
-                next();
-                return null;
-              }
-
-              db.models.fileassoc
-              .create({
-                modelName: Model.name,
-                modelId: r.id,
-                field: fieldName,
-                fileId: value.id || value
-              })
-              .then( (r)=> {
-                we.log.verbose('File assoc created:', r.id);
-
-                filesToSave.push(i);
-                newFileAssocs.push(r);
-
-                next();
-                return null;
-              })
-              .catch(next);
-            })
-            .catch(next);
-          }, (err)=> {
-            if (err) return nextField(err);
-
-            r._salvedFileAssocs[fieldName] = newFileAssocs;
-            r._salvedFiles[fieldName] = filesToSave;
-            r.setDataValue(fieldName, filesToSave.map( (im)=> {
-              return im.toJSON();
-            }));
-
-            nextField();
-          })
-        })
-      })
-      // TODO check if is better to run this in parallel
-      async.series(functions, done);
-    }
-    // after update one record with file fields
-    we.file.file.afterUpdatedRecord = function afterUpdatedRecord (r, opts, done) {
-      const Model = this;
-
-      const fields = we.file.file.getModelFileFields(this);
-      if (!fields) return done();
-
-      let fieldNames = Object.keys(fields);
-      async.eachSeries(fieldNames, (fieldName, nextField)=> {
-        // check if user whant update this field
-        if (opts.fields.indexOf(fieldName) === -1) return nextField()
-
-        let filesToSave = _.clone(r.get(fieldName));
-        let newFileAssocs = [];
-        let newFileAssocsIds = [];
-
-        async.series([
-          function findOrCreateAllAssocs (done) {
-            let preloadedFilesAssocsToSave = [];
-
-            async.each(filesToSave, (its, next)=> {
-              if (_.isEmpty(its) || its === 'null') return next();
-
-              let values = {
-                modelName: Model.name,
-                modelId: r.id,
-                field: fieldName,
-                fileId: its.id || its
-              };
-              // check if this file exits
-              db.models.file
-              .findOne({
-                where: { id: its.id || its }
+              // check if the file exists
+              db.models.file.findOne({
+                where: { id: value.id || value }
               })
               .then( (i)=> {
                 if (!i) {
-                  done();
-                  return null;
-                }
-                // find of create the assoc
-                return db.models.fileassoc
-                .findOrCreate({
-                  where: values,
-                  defaults: values
-                })
-                .then( (r)=> {
-                  r[0].file = i;
-                  preloadedFilesAssocsToSave.push(r[0]);
                   next();
                   return null;
+                }
+
+                db.models.fileassoc
+                .create({
+                  modelName: Model.name,
+                  modelId: r.id,
+                  field: fieldName,
+                  fileId: value.id || value
+                })
+                .then( (r)=> {
+                  we.log.verbose('File assoc created:', r.id);
+
+                  filesToSave.push(i);
+                  newFileAssocs.push(r);
+
+                  next();
+                  return null;
+                })
+                .catch(next);
+              })
+              .catch(next);
+            }, (err)=> {
+              if (err) return nextField(err);
+
+              r._salvedFileAssocs[fieldName] = newFileAssocs;
+              r._salvedFiles[fieldName] = filesToSave;
+              r.setDataValue(fieldName, filesToSave.map( (im)=> {
+                return im.toJSON();
+              }));
+
+              nextField();
+            })
+          })
+        })
+        // TODO check if is better to run this in parallel
+        async.series(functions, (err)=> {
+          if (err) return reject(err);
+          resolve();
+        });
+      });
+
+    }
+    // after update one record with file fields
+    we.file.file.afterUpdatedRecord = function (r, opts) {
+      return new Promise( (resolve, reject)=> {
+        const Model = this;
+
+        const fields = we.file.file.getModelFileFields(this);
+        if (!fields) return resolve();
+
+        let fieldNames = Object.keys(fields);
+        async.eachSeries(fieldNames, (fieldName, nextField)=> {
+          // check if user whant update this field
+          if (opts.fields.indexOf(fieldName) === -1) return nextField()
+
+          let filesToSave = _.clone(r.get(fieldName));
+          let newFileAssocs = [];
+          let newFileAssocsIds = [];
+
+          async.series([
+            function findOrCreateAllAssocs (done) {
+              let preloadedFilesAssocsToSave = [];
+
+              async.each(filesToSave, (its, next)=> {
+                if (_.isEmpty(its) || its === 'null') return next();
+
+                let values = {
+                  modelName: Model.name,
+                  modelId: r.id,
+                  field: fieldName,
+                  fileId: its.id || its
+                };
+                // check if this file exits
+                db.models.file
+                .findOne({
+                  where: { id: its.id || its }
+                })
+                .then( (i)=> {
+                  if (!i) {
+                    done();
+                    return null;
+                  }
+                  // find of create the assoc
+                  return db.models.fileassoc
+                  .findOrCreate({
+                    where: values,
+                    defaults: values
+                  })
+                  .then( (r)=> {
+                    r[0].file = i;
+                    preloadedFilesAssocsToSave.push(r[0]);
+                    next();
+                    return null;
+                  });
+                })
+                .catch(done);
+              }, (err)=> {
+                if (err) return done(err);
+
+                filesToSave = preloadedFilesAssocsToSave.map( (r)=> {
+                  newFileAssocsIds.push(r.id);
+                  return r.file;
                 });
+
+                newFileAssocs = preloadedFilesAssocsToSave;
+                done();
+              });
+            },
+            // delete removed file assocs
+            function deleteAssocs (done) {
+              let query = {
+                where: {
+                  modelName: Model.name,
+                  modelId: r.id,
+                  field: fieldName
+                }
+              };
+
+              if (!_.isEmpty(newFileAssocsIds)) {
+                query.where.id = { [we.Op.notIn]: newFileAssocsIds };
+              }
+
+              db.models.fileassoc
+              .destroy(query)
+              .then(function afterDelete (result) {
+                we.log.verbose('Result from deleted file assocs: ', result, fieldName, Model.name);
+                done();
+                return null;
               })
               .catch(done);
-            }, (err)=> {
-              if (err) return done(err);
-
-              filesToSave = preloadedFilesAssocsToSave.map( (r)=> {
-                newFileAssocsIds.push(r.id);
-                return r.file;
-              });
-
-              newFileAssocs = preloadedFilesAssocsToSave;
+            },
+            function setRecorValues (done) {
+              r._salvedFiles[fieldName] = filesToSave;
+              r._salvedFileAssocs[fieldName] = newFileAssocs;
+              r.setDataValue(fieldName, filesToSave.map( (im)=> {
+                return im.toJSON();
+              }));
               done();
-            });
-          },
-          // delete removed file assocs
-          function deleteAssocs (done) {
-            let query = {
-              where: {
-                modelName: Model.name,
-                modelId: r.id,
-                field: fieldName
-              }
-            };
-
-            if (!_.isEmpty(newFileAssocsIds)) {
-              query.where.id = { $notIn: newFileAssocsIds };
             }
-
-            db.models.fileassoc
-            .destroy(query)
-            .then(function afterDelete (result) {
-              we.log.verbose('Result from deleted file assocs: ', result, fieldName, Model.name);
-              done();
-              return null;
-            })
-            .catch(done);
-          },
-          function setRecorValues (done) {
-            r._salvedFiles[fieldName] = filesToSave;
-            r._salvedFileAssocs[fieldName] = newFileAssocs;
-            r.setDataValue(fieldName, filesToSave.map( (im)=> {
-              return im.toJSON();
-            }));
-            done();
-          }
-        ], nextField);
-      }, done);
+          ], nextField);
+        }, (err)=> {
+          if (err) return reject(err);
+          resolve();
+        });
+      });
     }
     // delete the file associations after delete related model
-    we.file.file.afterDeleteRecord = function afterDeleteRecord (r, opts, done) {
-      const Model = this;
+    we.file.file.afterDeleteRecord = function (r) {
+      return new Promise( (resolve, reject)=> {
+        const Model = this;
 
-      db.models.fileassoc
-      .destroy({
-        where: {
-          modelName: Model.name,
-          modelId: r.id
-        }
-      })
-      .then( (result)=> {
-        we.log.debug('Deleted ' + result + ' file assocs from record with id: ' + r.id);
-        done();
-        return null;
-      })
-      .catch(done);
+        db.models.fileassoc
+        .destroy({
+          where: {
+            modelName: Model.name,
+            modelId: r.id
+          }
+        })
+        .then( (result)=> {
+          we.log.debug('Deleted ' + result + ' file assocs from record with id: ' + r.id);
+          resolve();
+          return null;
+        })
+        .catch(reject);
+      });
     }
   });
 
