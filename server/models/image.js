@@ -123,6 +123,9 @@ module.exports = function ImageModel (we) {
       return new Promise( (resolve, reject)=> {
         const Model = this;
 
+        // skip if is raw query that dont preload need model attrs and methods
+        if (opts.raw) return resolve();
+
         if (_.isArray(r)) {
           async.each(r, (r1, next)=> {
             // we.db.models.imageassoc
@@ -145,6 +148,8 @@ module.exports = function ImageModel (we) {
       const Model = this;
       // found 0 results
       if (!r) return done();
+      // skip if is raw query that dont preload need model attrs and methods
+      if (opts.raw || !r.setDataValue) return done();
 
       const fields = we.file.image.getModelImageFields(this);
       if (!fields) return done();
@@ -188,11 +193,13 @@ module.exports = function ImageModel (we) {
       async.parallel(functions, done);
     }
     // after create one record with image fields
-    we.file.image.afterCreatedRecord = function afterCreatedRecord (r) {
-
+    we.file.image.afterCreatedRecord = function afterCreatedRecord (r, opts) {
       return new Promise( (resolve, reject)=> {
         const functions = [];
         const Model = this;
+
+        // skip if is raw query that dont preload need model attrs and methods
+        if (opts.raw || !r.setDataValue) return resolve();
 
         const fields = we.file.image.getModelImageFields(this);
         if (!fields) return resolve();
@@ -266,6 +273,9 @@ module.exports = function ImageModel (we) {
     we.file.image.afterUpdatedRecord = function afterUpdatedRecord (r, opts) {
       return new Promise( (resolve, reject)=> {
         const Model = this;
+
+        // skip if is raw query that dont preload need model attrs and methods
+        if (opts.raw || !r.setDataValue) return resolve();
 
         const fields = we.file.image.getModelImageFields(this);
         if (!fields) {
