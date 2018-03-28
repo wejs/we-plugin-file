@@ -8,3 +8,5 @@ test
 *.log
 files/uploads
 config
+package-lock.json
+yarn.lock

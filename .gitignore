@@ -3,3 +3,5 @@ coverage
 files/uploads
 config
 *.log
+package-lock.json
+yarn.lock
