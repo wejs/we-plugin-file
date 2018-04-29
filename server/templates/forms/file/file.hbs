@@ -2,7 +2,7 @@
      class="form-group {{#if error}}has-error has-feedback{{/if}}"
      data-multiple="{{#if field.formFieldMultiple}}true{{else}}false{{/if}}" >
 
-  <label for="{{fieldId}}">{{t fieldName}} {{#ifCond field.allowNull false}}*{{/ifCond}}</label>
+  <label for="{{fieldId}}">{{{label}}} {{#ifCond field.allowNull false}}*{{/ifCond}}</label>
 
   <button id="{{fieldId}}FileBTNSelector"
       type="button"
@@ -59,7 +59,7 @@
     </tr></table>
   </div>
 
-  <p class="help-block">{{t help}}</p>
+  <p class="help-block">{{{help}}}</p>
 
   {{{field-help-error error}}}
 </div>
