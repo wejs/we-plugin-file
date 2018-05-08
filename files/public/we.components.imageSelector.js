@@ -116,12 +116,12 @@ we.components.imageSelector = {
     $('#weImageUploadForm .upload-step-2').show();
   },
 
-  showProgressBar() {
+  showProgressBar: function() {
     $('#weImageUploadForm .form-group').hide();
     this.progressBar.css( 'width', '0%' );
     this.progress.show();
   },
-  hideProgressBar() {
+  hideProgressBar: function() {
     $('#weImageUploadForm .form-group').show();
     this.progressBar.css( 'width', '0%' );
     this.progress.hide();
