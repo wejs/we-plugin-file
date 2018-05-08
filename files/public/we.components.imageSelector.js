@@ -50,7 +50,6 @@ we.components.imageSelector = {
     this.progressBar = this.progress.find('.progress-bar');
 
     this.modal.modal('show');
-
     // Change this to the location of your server-side upload handler:
     this.uploader.fileupload({
       dataType: 'json',
@@ -74,17 +73,22 @@ we.components.imageSelector = {
         $('#upload-image-preview-wrapper').html('');
         $('#weImageUploadDescription').val('');
         we.imageSelectedHandler = null;
-        self.progress.hide();
-        self.progressBar.css( 'width', '0%' );
 
+        self.hideProgressBar();
         self.goTostep1();
       },
       progressall: function (e, data) {
         var progress = parseInt(data.loaded / data.total * 100, 10);
+
+        console.log('Upload progress:', progress);
+
         self.progressBar.css( 'width', progress + '%' );
       },
       fail: function (e, data) {
         var xhr = data.jqXHR;
+
+        self.hideProgressBar();
+
         if (xhr.responseJSON && xhr.responseJSON.messages) {
           for(var i = 0; i < xhr.responseJSON.messages.length; i++) {
             var msg = xhr.responseJSON.messages[i];
@@ -111,10 +115,25 @@ we.components.imageSelector = {
     $('#weImageUploadForm .upload-step-1').hide();
     $('#weImageUploadForm .upload-step-2').show();
   },
-  saveFile: function saveFile() {
-    if ($('#weImageUploadDescription').val())
-      this.fileUploadData.submit();
 
+  showProgressBar() {
+    $('#weImageUploadForm .form-group').hide();
+    this.progressBar.css( 'width', '0%' );
+    this.progress.show();
+  },
+  hideProgressBar() {
+    $('#weImageUploadForm .form-group').show();
+    this.progressBar.css( 'width', '0%' );
+    this.progress.hide();
+  },
+
+  saveFile: function saveFile() {
+    // if ($('#weImageUploadDescription').val()) {
+
+    this.showProgressBar();
+
+    this.fileUploadData.submit();
+    // }
 
     return false;
   },
