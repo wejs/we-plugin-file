@@ -16,7 +16,7 @@ module.exports = {
    * @successResponse 200
    */
   find(req, res) {
-    if (req.query.selector === 'owner') {
+    if (req.query.selector === 'owner' && req.isAuthenticated())  {
       // see only own images
       res.locals.query.where.creatorId = req.user.id;
     } else if (req.we.acl && req.we.acl.canStatic('find_all_system_images', req.userRoleNames)) {
