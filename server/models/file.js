@@ -30,7 +30,9 @@ module.exports = function FileModel (we) {
       },
 
       originalname: { type: we.db.Sequelize.STRING },
-      mime: { type: we.db.Sequelize.STRING(50) },
+      mime: {
+        type: we.db.Sequelize.STRING(255)
+      },
       extension: { type: we.db.Sequelize.STRING(10) },
 
       storageName: { type: we.db.Sequelize.STRING },
