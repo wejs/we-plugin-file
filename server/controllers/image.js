@@ -204,6 +204,35 @@ module.exports = {
     });
   },
 
+  edit(req, res) {
+    const we = req.we;
+
+    let fileId = req.params.imageId;
+    if (!fileId) {
+      return res.notFound();
+    }
+
+    we.db.models.image
+    .findOne({
+      where: { id: fileId }
+    })
+    .then(function afterFindOne (image) {
+      if (!image) return null;
+      image.description = req.body.description;
+
+      return image.save()
+      .then( (image)=> {
+        res.send({
+          image: image
+        });
+      });
+    })
+    .catch( (err)=> {
+      we.log.error('Error on update image in BD: ', err, fileId);
+      return res.serverError(err);
+    });
+  },
+
   /**
    * Delete one image
    *

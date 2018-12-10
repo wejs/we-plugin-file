@@ -153,6 +153,16 @@ module.exports = function loadPlugin (pp, Plugin) {
         }]
       }
     },
+
+    'post /api/v1/image/:imageId': {
+      name: 'update_image',
+      controller: 'image',
+      action: 'edit',
+      model: 'image',
+      responseType: 'json',
+      permission: 'updade_image'
+    },
+
     'delete /api/v1/image/:name': {
       controller: 'image',
       action: 'destroy',
@@ -160,6 +170,8 @@ module.exports = function loadPlugin (pp, Plugin) {
       responseType: 'json',
       permission: 'delete_image'
     },
+
+    // file urls:
     'get /api/v1/file/:id([0-9]+)': {
       controller: 'file',
       action: 'findOne',
@@ -195,6 +207,16 @@ module.exports = function loadPlugin (pp, Plugin) {
         }]
       }
     },
+
+    'post /api/v1/file/:fileId': {
+      name: 'update_file',
+      controller: 'file',
+      action: 'edit',
+      model: 'file',
+      responseType: 'json',
+      permission: 'updade_file'
+    },
+
     // user image routes
     'get /user/:userId/image': {
       controller: 'image',
