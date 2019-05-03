@@ -153,6 +153,16 @@ module.exports = function loadPlugin (pp, Plugin) {
         }]
       }
     },
+
+    'post /api/v1/image/:imageId': {
+      name: 'update_image',
+      controller: 'image',
+      action: 'edit',
+      model: 'image',
+      responseType: 'json',
+      permission: 'updade_image'
+    },
+
     'delete /api/v1/image/:name': {
       controller: 'image',
       action: 'destroy',
@@ -160,6 +170,8 @@ module.exports = function loadPlugin (pp, Plugin) {
       responseType: 'json',
       permission: 'delete_image'
     },
+
+    // file urls:
     'get /api/v1/file/:id([0-9]+)': {
       controller: 'file',
       action: 'findOne',
@@ -195,6 +207,16 @@ module.exports = function loadPlugin (pp, Plugin) {
         }]
       }
     },
+
+    'post /api/v1/file/:fileId': {
+      name: 'update_file',
+      controller: 'file',
+      action: 'edit',
+      model: 'file',
+      responseType: 'json',
+      permission: 'updade_file'
+    },
+
     // user image routes
     'get /user/:userId/image': {
       controller: 'image',
@@ -263,15 +285,12 @@ module.exports = function loadPlugin (pp, Plugin) {
    * @param {Function} done    callback
    */
   plugin.fastLoader = function fastLoader(we, done) {
-
     // - Controllers:
-
     we.controllers.avatar = new we.class.Controller(require('./server/controllers/avatar.js'));
     we.controllers.file = new we.class.Controller(require('./server/controllers/file.js'));
     we.controllers.image = new we.class.Controller(require('./server/controllers/image.js'));
 
     // - Models
-
     we.db.modelsConfigs.file = require('./server/models/file.js')(we);
     we.db.modelsConfigs.fileassoc = require('./server/models/fileassoc.js')(we);
     we.db.modelsConfigs.image = require('./server/models/image.js')(we);
@@ -309,7 +328,15 @@ module.exports = function loadPlugin (pp, Plugin) {
       let storageName = config.upload.storageName
 
       if (!storageName) {
-       storageName = (config.upload.isImage)? we.config.upload.defaultImageStorage: we.config.upload.defaultFileStorage
+        if (config.upload.isImage) {
+          storageName = we.config.upload.defaultImageStorage;
+        } else if(config.upload.isVideo) {
+          storageName = we.config.upload.defaultVideoStorage
+        } else if(config.upload.isAudio) {
+          storageName = we.config.upload.defaultAudioStorage
+        } else {
+          storageName = we.config.upload.defaultFileStorage
+        }
       }
 
       if (!config.upload.storage && storageName) {
@@ -430,6 +457,30 @@ module.exports = function loadPlugin (pp, Plugin) {
               models[modelName].options.imageFields[f],
               we,
               'file/image'
+            )
+          }
+        }
+
+        if (models[modelName].options.videoFields) {
+          for (f in models[modelName].options.videoFields) {
+            plugin.setModelFileField (
+              models[modelName],
+              f,
+              models[modelName].options.videoFields[f],
+              we,
+              'file/video'
+            )
+          }
+        }
+
+        if (models[modelName].options.audioFields) {
+          for (f in models[modelName].options.audioFields) {
+            plugin.setModelFileField (
+              models[modelName],
+              f,
+              models[modelName].options.audioFields[f],
+              we,
+              'file/audio'
             )
           }
         }

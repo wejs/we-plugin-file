@@ -30,14 +30,14 @@
                   <span class="btn btn-success fileinput-button">
                     <span class="glyphicon glyphicon-plus"></span>
                     <label for="file-upload-image-field">{{t 'image.upload.selector.btn'}}</label>
-                    <input id="file-upload-image-field" class="fileupload image-upload=field" type="file" data-url="/api/v1/image" name="image" />
+                    <input id="file-upload-image-field" class="fileupload image-upload=field" type="file" data-url="/api/v1/image" name="image" accept="image/*" />
                   </span>
                 </div>
                 <div class="upload-step-2" style="display:none">
                   <div id="upload-image-preview-wrapper"></div>
                   <div class="form-group">
-                    <label for="weImageUploadDescription">{{t 'form-image-description'}}*</label>
-                    <textarea  id="weImageUploadDescription" required="required" name="description" class="form-control"></textarea>
+                    <label for="weImageUploadDescription">{{t 'form-image-description'}}</label>
+                    <textarea  id="weImageUploadDescription" name="description" class="form-control"></textarea>
                     <p class="text-helper">{{t 'form-helper-image-description'}}</p>
                   </div>
                   <div class="form-group">
@@ -48,13 +48,10 @@
               </form>
               <br>
               <br>
-              <!-- The global progress bar -->
               <div class="progress" style="display:none;">
                 <div class="progress-bar progress-bar-success"></div>
               </div>
             </div>
-
-            {{!-- File browser --}}
             <div role="tabpanel" class="tab-pane" id="imageFileListTab">
               <br />
               <div id="weImageBrowser" class="we-image-browser"></div>

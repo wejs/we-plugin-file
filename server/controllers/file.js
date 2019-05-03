@@ -53,6 +53,35 @@ module.exports = {
     .catch(res.queryError);
   },
 
+  edit(req, res) {
+    const we = req.we;
+
+    let fileId = req.params.fileId;
+    if (!fileId) {
+      return res.notFound();
+    }
+
+    we.db.models.file
+    .findOne({
+      where: { id: fileId }
+    })
+    .then(function afterFindOne (r) {
+      if (!r) return null;
+      r.description = req.body.description;
+
+      return r.save()
+      .then( (r)=> {
+        res.send({
+          file: r
+        });
+      });
+    })
+    .catch( (err)=> {
+      we.log.error('Error on update file in BD: ', err, fileId);
+      return res.serverError(err);
+    });
+  },
+
   /**
    * Download one file
    *

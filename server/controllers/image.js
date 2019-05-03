@@ -16,7 +16,7 @@ module.exports = {
    * @successResponse 200
    */
   find(req, res) {
-    if (req.query.selector === 'owner') {
+    if (req.query.selector === 'owner' && req.isAuthenticated())  {
       // see only own images
       res.locals.query.where.creatorId = req.user.id;
     } else if (req.we.acl && req.we.acl.canStatic('find_all_system_images', req.userRoleNames)) {
@@ -203,6 +203,35 @@ module.exports = {
         return null;
       })
       .catch(res.queryError);
+    });
+  },
+
+  edit(req, res) {
+    const we = req.we;
+
+    let fileId = req.params.imageId;
+    if (!fileId) {
+      return res.notFound();
+    }
+
+    we.db.models.image
+    .findOne({
+      where: { id: fileId }
+    })
+    .then(function afterFindOne (image) {
+      if (!image) return null;
+      image.description = req.body.description;
+
+      return image.save()
+      .then( (image)=> {
+        res.send({
+          image: image
+        });
+      });
+    })
+    .catch( (err)=> {
+      we.log.error('Error on update image in BD: ', err, fileId);
+      return res.serverError(err);
     });
   },
 

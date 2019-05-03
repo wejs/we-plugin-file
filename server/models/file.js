@@ -30,7 +30,9 @@ module.exports = function FileModel (we) {
       },
 
       originalname: { type: we.db.Sequelize.STRING },
-      mime: { type: we.db.Sequelize.STRING(50) },
+      mime: {
+        type: we.db.Sequelize.STRING(255)
+      },
       extension: { type: we.db.Sequelize.STRING(10) },
 
       storageName: { type: we.db.Sequelize.STRING },
@@ -142,6 +144,10 @@ module.exports = function FileModel (we) {
     we.file.file.afterFind = function (r, opts) {
       return new Promise( (resolve, reject)=> {
         const Model = this;
+
+        // skip if is raw query that dont preload need model attrs and methods
+        if (opts.raw) return resolve();
+
         if (_.isArray(r)) {
           async.eachSeries(r, (r1, next)=> {
             // we.db.models.fileassoc
@@ -163,6 +169,9 @@ module.exports = function FileModel (we) {
       const Model = this;
       // found 0 results
       if (!r) return done();
+      // skip if is raw query that dont preload need model attrs and methods
+      if (opts.raw || !r.setDataValue) return done();
+
       // get fields
       let fields = we.file.file.getModelFileFields(this);
       if (!fields) return done();
@@ -206,10 +215,12 @@ module.exports = function FileModel (we) {
       async.parallel(functions, done);
     }
     // after create one record with file fields
-    we.file.file.afterCreatedRecord = function (r) {
+    we.file.file.afterCreatedRecord = function (r, opts) {
       return new Promise( (resolve, reject)=> {
         const functions = [];
         const Model = this;
+        // skip if is raw query that dont preload need model attrs and methods
+        if (opts.raw || !r.setDataValue) return resolve();
 
         let fields = we.file.file.getModelFileFields(this);
         if (!fields) return resolve();
@@ -284,6 +295,8 @@ module.exports = function FileModel (we) {
     we.file.file.afterUpdatedRecord = function (r, opts) {
       return new Promise( (resolve, reject)=> {
         const Model = this;
+        // skip if is raw query that dont preload need model attrs and methods
+        if (opts.raw || !r.setDataValue) return resolve();
 
         const fields = we.file.file.getModelFileFields(this);
         if (!fields) return resolve();
