@@ -54,7 +54,11 @@ module.exports = {
   findOne(req, res) {
     const we = req.we;
 
-    let fileName = req.params.name
+    if (res.locals.data && res.locals.id) {
+      return res.ok();
+    }
+
+    let fileName = req.params.name;
 
     if (!fileName) {
       return res.badRequest('image:findOne: fileName is required')
@@ -71,9 +75,7 @@ module.exports = {
 
     we.db.models.image
     .findOne({
-      where: {
-        name: fileName
-      }
+      where: { name: fileName }
     })
     .then(function afterFindOneImage (image) {
       // image not found
@@ -223,7 +225,12 @@ module.exports = {
 
     we.db.models.image
     .findOne({
-      where: { name: req.params.name }
+      where: {
+        [we.Op.or]: [
+          { name: req.params.name },
+          { id: req.params.id }
+        ]
+      }
     })
     .then( (record)=> {
       if (!record) return res.notFound();

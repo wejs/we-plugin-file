@@ -247,8 +247,14 @@ module.exports = function loadPlugin (pp, Plugin) {
     permission: 'find_image'
   };
 
-  // ser plugin routes
+  // Set plugin routes
   plugin.setRoutes(pPoutes);
+
+  // Plugin resources:
+  plugin.setResource({
+    name: 'image',
+    namespace: '/api/v2',
+  });
 
   /**
    * Plugin fast loader for speed up we.js projeto bootstrap
