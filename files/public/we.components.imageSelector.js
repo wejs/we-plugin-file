@@ -247,117 +247,124 @@ window.addEventListener('WebComponentsReady', function() {
 
   // -- Image component
   // usage: <we-image data-id="{{id}}" data-style="thumbnail"></we-image>
-  var WeImagePrototype = Object.create(HTMLElement.prototype);
-  WeImagePrototype.createdCallback = function() {
-    var self = this;
+  class WeImage extends HTMLElement {
+    constructor() {
+      super();
 
-    var id = this.dataset.id;
-    var style = this.dataset.style || 'original';
+      var self = this;
 
-    if (!id) return console.warn('data-id is required for we-image');
+      var id = this.dataset.id;
+      var style = this.dataset.style || 'original';
 
-    we.cache.findImage(id).then(function (result) {
-      var img = document.createElement('img');
-      img.src = result.image.urls[style];
+      if (!id) return console.warn('data-id is required for we-image');
 
-      if (result.image.description)
-        img.alt = result.image.description;
+      we.cache.findImage(id).then(function (result) {
+        var img = document.createElement('img');
+        img.src = result.image.urls[style];
 
-      self.appendChild(img);
-    });
-  };
-  document.registerElement('we-image', {
-    prototype: WeImagePrototype
-  });
+        if (result.image.description)
+          img.alt = result.image.description;
+
+        self.appendChild(img);
+      });
+    }
+
+  }
+
+  window.customElements.define('we-image', WeImage);
 
   /**
    *  -- Image description component
    *  usage: <we-image-description data-id="{{id}}"></we-image-description>
    */
-  var WeImageDescriptionPrototype = Object.create(HTMLElement.prototype);
-  WeImageDescriptionPrototype.createdCallback = function() {
-    var self = this;
+  class WeImageDescription extends HTMLElement {
+    constructor() {
+      super();
 
-    var id = this.dataset.id;
-    if (!id) return console.warn('data-id is required for we-image-description');
+      var self = this;
 
-    we.cache.findImage(id).then(function (result) {
-      self.textContent = result.image.originalname;
+      var id = this.dataset.id;
+      if (!id) return console.warn('data-id is required for we-image-description');
 
-      if (result.image.description) {
-        self.textContent += ': ' + result.image.description;
-      }
-    });
-  };
-  document.registerElement('we-image-description', {
-    prototype: WeImageDescriptionPrototype
-  });
+      we.cache.findImage(id).then(function (result) {
+        self.textContent = result.image.originalname;
 
-  var WISBP = Object.create(HTMLElement.prototype);
-
-  var formModalContentIsLoad = false;
-
-  WISBP.createdCallback = function() {
-    var fieldid = this.dataset.fieldid;
-    this.fieldSelector = '#'+fieldid;
-    this.addEventListener('click', this.getForm);
-  };
-
-  WISBP.getForm = function() {
-    var self = this;
-    // callback after select image
-    we.components.imageSelector.imageSelectedHandler = self.afterSelectImage.bind(this);
-
-    if (formModalContentIsLoad) {
-      we.components.imageSelector.init('#imageSelectorFormModal');
-    } else {
-      this.showLoading();
-
-      $.ajax({
-        url: '/api/v1/image/get-form-modal-content'
-      })
-      .then(function (html) {
-        formModalContentIsLoad = true;
-        // append the form
-        $('body').append(html);
-
-        we.components.imageSelector.init('#imageSelectorFormModal');
-
-        self.hideLoading();
+        if (result.image.description) {
+          self.textContent += ': ' + result.image.description;
+        }
       });
     }
   }
 
-  WISBP.afterSelectImage = function (err, image) {
-    if (err) throw new Error('Error on select image.');
-    var fieldSelector = this.fieldSelector;
-    var name = this.dataset.name;
+  window.customElements.define('we-image-description', WeImageDescription);
 
-    var row = $(fieldSelector + 'ImageFieldTemplates tr').clone();
-    row.find('td[data-image-name]').html(image.originalname + ' : ' +image.description);
-    row.find('td[data-image-thumbnail]').html(
-      '<img alt="'+image.description+'" src="'+ image.urls.thumbnail +'">' +
-      '<input name="'+name+'" type="hidden" value="'+image.id+'">'
-    );
 
-    if ($(fieldSelector).attr('data-multiple') !== 'true') {
-      $(this).hide();
+  var formModalContentIsLoad = false;
+
+  class WISBP extends HTMLElement {
+    constructor() {
+      super();
+
+      var fieldid = this.dataset.fieldid;
+      this.fieldSelector = '#'+fieldid;
+      this.addEventListener('click', this.getForm.bind(this));
     }
 
-    $(fieldSelector + 'ImageTable tbody').append(row);
-    $(fieldSelector + 'ImageTable').show();
+    getForm() {
+      var self = this;
+      // callback after select image
+      we.components.imageSelector.imageSelectedHandler = self.afterSelectImage.bind(this);
+
+      if (formModalContentIsLoad) {
+        we.components.imageSelector.init('#imageSelectorFormModal');
+      } else {
+        this.showLoading();
+
+        $.ajax({
+          url: '/api/v1/image/get-form-modal-content'
+        })
+        .then(function (html) {
+          formModalContentIsLoad = true;
+          // append the form
+          $('body').append(html);
+
+          we.components.imageSelector.init('#imageSelectorFormModal');
+
+          self.hideLoading();
+        });
+      }
+    }
+
+    afterSelectImage(err, image) {
+      if (err) throw new Error('Error on select image.');
+      var fieldSelector = this.fieldSelector;
+      var name = this.dataset.name;
+
+      var row = $(fieldSelector + 'ImageFieldTemplates tr').clone();
+      row.find('td[data-image-name]').html(image.originalname + ' : ' +image.description);
+      row.find('td[data-image-thumbnail]').html(
+        '<img alt="'+image.description+'" src="'+ image.urls.thumbnail +'">' +
+        '<input name="'+name+'" type="hidden" value="'+image.id+'">'
+      );
+
+      if ($(fieldSelector).attr('data-multiple') !== 'true') {
+        $(this).hide();
+      }
+
+      $(fieldSelector + 'ImageTable tbody').append(row);
+      $(fieldSelector + 'ImageTable').show();
+    }
+
+    showLoading() {
+      this.setAttribute('disabled', 'disabled');
+    }
+
+    hideLoading() {
+      this.removeAttribute('disabled');
+    }
+
   }
 
-  WISBP.showLoading = function() {
-    this.setAttribute('disabled', 'disabled');
-  }
-
-  WISBP.hideLoading = function() {
-    this.removeAttribute('disabled');
-  }
-
-  document.registerElement('we-image-selector-btn', {
-    prototype: WISBP
-  });
+  window.customElements.define('we-image-selector-btn', WISBP);
 
 });

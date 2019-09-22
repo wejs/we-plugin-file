@@ -145,18 +145,23 @@ window.addEventListener('WebComponentsReady', function() {
    *  -- Image description component
    *  usage: <we-image-description data-id="{{id}}"></we-image-description>
    */
-  var WeFileDescriptionPrototype = Object.create(HTMLElement.prototype);
-  WeFileDescriptionPrototype.createdCallback = function() {
-    var self = this;
+  class WeFileDescription extends HTMLElement {
+    constructor() {
+      super();
 
-    var id = this.dataset.id;
-    if (!id) return console.warn('data-id is required for we-file-description');
+      var self = this;
 
-    we.cache.findFile(id).then(function (result) {
-      self.textContent = result.file.originalname;
-    });
-  };
-  document.registerElement('we-file-description', {
-    prototype: WeFileDescriptionPrototype
-  });
+      var id = this.dataset.id;
+      if (!id) return console.warn('data-id is required for we-file-description');
+
+      we.cache.findFile(id).then(function (result) {
+        self.textContent = result.file.originalname;
+      });
+    }
+
+  }
+
+  window.customElements.define('we-file-description', WeFileDescription);
+
 });
+
