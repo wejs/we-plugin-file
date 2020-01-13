@@ -3,18 +3,13 @@ sudo: required
 language: node_js
 
 node_js:
-  - v6
-
-services:
-  - mysql
+  - v10
 
 env:
   NODE_ENV: 'test'
 
 before_script:
   - sudo apt-get install graphicsmagick
-  - mysql -e 'create database test;'
-  - npm install -g mocha
 
 notifications:
   email:

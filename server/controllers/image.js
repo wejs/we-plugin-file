@@ -257,7 +257,7 @@ module.exports = {
       where: {
         [we.Op.or]: [
           { name: req.params.name },
-          { id: req.params.id }
+          { id: req.params.name }
         ]
       }
     })

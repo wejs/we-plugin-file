@@ -110,8 +110,9 @@ describe('imageFeature', function () {
   });
   describe('remove', function () {
     it('delete /api/v1/image/:name should delete one file', function (done) {
-      this.slow(300)
-      var salvedFile
+      this.slow(300);
+
+      let salvedFile;
 
       request(http)
       .post('/api/v1/image')
@@ -119,29 +120,27 @@ describe('imageFeature', function () {
       .expect(201)
       .end(function (err, res) {
         if (err) {
-          console.log('res.text>', res.text)
+          console.log('create:res.text>', res.text);
           throw err;
         }
         salvedFile = res.body.image;
 
         request(http)
-        .delete('/api/v1/image/'+salvedFile.name)
+        .delete('/api/v1/image/' + salvedFile.name)
         .expect(204)
         .end(function (err, res) {
           if (err) {
-            console.log('res.text>', res.text)
+            console.log('res.text>', res.text);
             throw err;
           }
 
-          var storage = we.config.upload.storages[salvedFile.storageName];
-
-          var path = storage.getPath(salvedFile.style, salvedFile.name)
+          const storage = we.config.upload.storages[salvedFile.storageName];
+          const path = storage.getPath(salvedFile.style, salvedFile.name);
 
           fs.exists(path, function afterCheckIfFileExists(exists) {
-            assert(!exists)
-
+            assert(!exists);
             done();
-          })
+          });
         });
       });
     });

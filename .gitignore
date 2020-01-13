@@ -3,5 +3,6 @@ coverage
 files/uploads
 config
 *.log
-package-lock.json
+*.sql
+*.sqlite
 yarn.lock

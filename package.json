@@ -4,31 +4,31 @@
   "version": "2.1.1",
   "main": "plugin.js",
   "dependencies": {
-    "multer": "1.3.0",
-    "mv": "^2.1.1",
-    "string": "^3.3.3"
+    "multer": "1.4.2",
+    "mv": "^2.1.1"
   },
   "scripts": {
     "test": "NODE_ENV=test LOG_LV=info ./node_modules/.bin/mocha test/bootstrap.js test/**/*.test.js -b ",
     "verbose-test": "NODE_ENV=test LOG_LV=verbose ./node_modules/.bin/mocha test/bootstrap.js test/**/*.test.js -b ",
-    "coverage": "NODE_ENV=test LOG_LV=info node_modules/.bin/istanbul cover node_modules/.bin/_mocha -- -u exports -R spec test/bootstrap.js test/**/*.test.js"
+    "coverage": "NODE_ENV=test LOG_LV=info nyc ./node_modules/.bin/mocha test/bootstrap.js test/**/*.test.js -b"
   },
   "author": "Alberto Souza <contato@albertosouza.net>",
   "license": "MIT",
   "devDependencies": {
-    "express-mysql-session": "^1.2.3",
-    "fs-extra": "^5.0.0",
+    "connect-sqlite3": "^0.9.11",
+    "fs-extra": "^8.1.0",
     "istanbul": "^0.4.5",
-    "mocha": "^5.0.1",
-    "mysql2": "^1.5.2",
-    "rimraf": "^2.6.2",
-    "sinon": "^4.4.1",
-    "supertest": "^3.0.0",
-    "we-core": "^2",
-    "we-plugin-acl": "wejs/we-plugin-acl",
-    "we-plugin-file-local": "^1.2.0",
+    "mocha": "^7.0.0",
+    "nyc": "^15.0.0",
+    "rimraf": "^3.0.0",
+    "sinon": "^8.0.4",
+    "sqlite3": "^4.1.1",
+    "supertest": "^4.0.2",
+    "we-core": "^3",
+    "we-plugin-acl": "^1.2.16",
+    "we-plugin-file-local": "^2.1.4",
     "we-plugin-user": "^2",
-    "we-test-tools": "wejs/we-test-tools"
+    "we-test-tools": "^1.0.0"
   },
   "repository": "wejs/we-plugin-file",
   "keywords": [

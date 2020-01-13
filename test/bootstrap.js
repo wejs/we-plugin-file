@@ -9,7 +9,7 @@ before(function(callback) {
   this.slow(100);
   this.timeout(30000);
 
-  testTools.copyLocalConfigIfNotExitst(projectPath, function() {
+  testTools.copyLocalSQLiteConfigIfNotExists(projectPath, function() {
     let We = require('we-core');
     we = new We();
 
@@ -26,10 +26,10 @@ before(function(callback) {
       we.startServer(function(err) {
         if (err) throw err;
         callback();
-      })
-    })
-  })
-})
+      });
+    });
+  });
+});
 
 //after all tests
 after(function (callback) {
@@ -39,16 +39,13 @@ after(function (callback) {
     we.db.defaultConnection.close();
 
     var tempFolders = [
-      projectPath + '/files/tmp',
-      projectPath + '/files/config',
-      projectPath + '/files/sqlite',
+      projectPath + '/database-test.sqlite',
       projectPath + '/files/public/min',
       projectPath + '/files/public/tpls.hbs.js',
       projectPath + '/files/public/admin.tpls.hbs.js',
       projectPath + '/files/public/project.css',
       projectPath + '/files/public/project.js',
-      projectPath + '/config/local.js',
-      // projectPath + '/files/wejsdoc'
+      projectPath + '/config/local.js'
     ];
 
     we.utils.async.each(tempFolders, function(folder, next){
@@ -56,10 +53,10 @@ after(function (callback) {
     }, function(err) {
       if (err) throw new Error(err);
       callback();
-    })
- })
+    });
+ });
 });
 
 after(function () {
-  process.exit();
+  we.exit(process.exit);
 });
