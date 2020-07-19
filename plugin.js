@@ -12,6 +12,8 @@ const imageMimeTypes = [
   'image/bmp',
   'image/x-icon',
   'image/tiff',
+  'image/heic', // apple format
+  'image/heif', // apple format
   'image/vnd.microsoft.icon' // .ico
 ];
 
@@ -297,7 +299,7 @@ module.exports = function loadPlugin (pp, Plugin) {
     we.db.modelsConfigs.imageassoc = require('./server/models/imageassoc.js')(we);
 
     done();
-  }
+  };
 
   //
   // - Plugin functions
@@ -310,8 +312,8 @@ module.exports = function loadPlugin (pp, Plugin) {
    * @return {Function}               Express middleware
    */
   plugin.uploader = function getUploader (uploadConfigs) {
-    return multer(uploadConfigs).fields(uploadConfigs.fields)
-  }
+    return multer(uploadConfigs).fields(uploadConfigs.fields);
+  };
 
   /**
    * Build and set upload middleware
@@ -319,34 +321,34 @@ module.exports = function loadPlugin (pp, Plugin) {
    * @param {Object} data {we: app, middlewares: middlewares, config: config}
    */
   plugin.setUploadMiddleware = function setUploadMiddleware (data) {
-    const we = data.we
-    let config = data.config
-    let middlewares = data.middlewares
+    const we = data.we;
+    let config = data.config;
+    let middlewares = data.middlewares;
 
     // bind upload  if have upload config and after ACL check
     if (config.upload) {
-      let storageName = config.upload.storageName
+      let storageName = config.upload.storageName;
 
       if (!storageName) {
         if (config.upload.isImage) {
           storageName = we.config.upload.defaultImageStorage;
         } else if(config.upload.isVideo) {
-          storageName = we.config.upload.defaultVideoStorage
+          storageName = we.config.upload.defaultVideoStorage;
         } else if(config.upload.isAudio) {
-          storageName = we.config.upload.defaultAudioStorage
+          storageName = we.config.upload.defaultAudioStorage;
         } else {
-          storageName = we.config.upload.defaultFileStorage
+          storageName = we.config.upload.defaultFileStorage;
         }
       }
 
       if (!config.upload.storage && storageName) {
-        let storageStrategy = we.config.upload.storages[storageName]
+        let storageStrategy = we.config.upload.storages[storageName];
 
         if (
           !storageStrategy ||
           !storageStrategy.getStorage
         ) {
-          we.log.warn('we-plugin-file:storage not found in we.config.upload.storages: ' + storageName)
+          we.log.warn('we-plugin-file:storage not found in we.config.upload.storages: ' + storageName);
           return;
         }
 
@@ -354,17 +356,17 @@ module.exports = function loadPlugin (pp, Plugin) {
         if (!storageStrategy.getUrlFromFile) {
           we.log.warn('we-plugin-file:we.config.upload.storages["' +
             storageName +
-          '"].getUrlFromFile is required')
+          '"].getUrlFromFile is required');
           return;
         }
 
-        config.upload.storage = storageStrategy.getStorage(we)
-        config.storageStrategy = storageStrategy
+        config.upload.storage = storageStrategy.getStorage(we);
+        config.storageStrategy = storageStrategy;
       }
 
-      middlewares.push(plugin.uploader(config.upload))
+      middlewares.push(plugin.uploader(config.upload));
     }
-  }
+  };
 
   /**
    * Get sequelize file field getter function
