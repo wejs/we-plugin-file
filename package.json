@@ -1,7 +1,7 @@
 {
   "name": "we-plugin-file",
   "description": "We.js file plugin with suport to storages",
-  "version": "3.0.0",
+  "version": "3.1.0",
   "main": "plugin.js",
   "dependencies": {
     "multer": "1.4.2",
